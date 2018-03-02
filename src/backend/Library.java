@@ -1,31 +1,53 @@
 package backend;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Date;
 
-public class Library {
+import org.w3c.dom.Node;
 
-	private LinkedList<Book> Books;
-	private LinkedList<User> Users;
-	private LinkedList<Reservation> Reservations;
-	public LinkedList<Book> getBooks() {
+import gest_dati.DataMng;
+import gest_dati.XMLMng;
+
+public class Library {
+	
+	private Node Books;
+	private Node Users;
+	private Node Reservations;
+	private DataMng data;
+	
+	public Library () {
+		
+	}
+	
+	public Node getBooks() {
 		return Books;
 	}
-	public void setBooks(LinkedList<Book> books) {
+	public void setBooks(Node books) {
 		Books = books;
 	}
-	public LinkedList<User> getUsers() {
+	public Node getUsers() {
 		return Users;
 	}
-	public void setUsers(LinkedList<User> users) {
+	public void setUsers(Node users) {
 		Users = users;
 	}
-	public LinkedList<Reservation> getReservations() {
+	public Node getReservations() {
 		return Reservations;
 	}
-	public void setReservations(LinkedList<Reservation> reservations) {
+	public void setReservations(Node reservations) {
 		Reservations = reservations;
 	}
+	
+	public void connectToData(String path_file) {
+		data = new XMLMng(path_file);
+	}
+	
+	public User login( String user, String pass ) {
+		User checkOnFile = data.checkLoginData(user, pass);
+		if ( checkOnFile!= null || checkOnFile instanceof User ) {
+			return checkOnFile;
+		}
+		return null;
+	}
+	
 	
 	
 }

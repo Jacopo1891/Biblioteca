@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Library>
+	<Users>
+		<User Password="Admin" Role="Admin" UserId="1" Username="Admin"/>
+	</Users>
+	<Books>
+		<Book Author="Jack London" BookId="1" Publisher="DeAgostini" Quantity="1" Title="Zanna Bianca"/>
+		<Book Author="J.R.R. Tolkien" BookId="2" Publisher="DeAgostini" Quantity="1" Title="Lo Hobit"/>
+	</Books>
+	<Reservations/>
+</Library>
