@@ -2,15 +2,16 @@ package backend;
 
 public class Book {
 	
-	private String BookId;
+	private int BookId;
 	private String Title;
 	private String Author;
 	private String PublischingHouse;
 	private int Quantity;
-	public String getBookId() {
+	
+	public int getBookId() {
 		return BookId;
 	}
-	public void setBookId(String bookId) {
+	public void setBookId(int bookId) {
 		BookId = bookId;
 	}
 	public String getTitle() {

@@ -1,6 +1,6 @@
 package gest_dati;
 
-import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import backend.Book;
 import backend.Reservation;
 import backend.User;
@@ -8,8 +8,8 @@ import backend.User;
 public interface DataMng {
 
 	public User checkLoginData( String user, String pass );
-	public Node getBooksAvailable();
-	public Node getBook(String[] param, String[] value);
+	public NodeList getBooksAvailable();
+	public Book searchBook(String[] param, String[] value);
 	public boolean insertNewBook(Book b, User u);
 	public boolean updateBook( Book b, User u );
 	public boolean deleteBook( Book b, User u );

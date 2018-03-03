@@ -1,5 +1,6 @@
 package frontend;
 
+import java.io.File;
 import java.util.Scanner;
 
 import backend.Library;
@@ -9,7 +10,7 @@ public class command_line_view {
 	
 	String path_xml = System.getProperty("user.dir");
 	String name_file_xml = "Library.xml";
-	String file_xml = path_xml + "\\" + name_file_xml;
+	String file_xml = path_xml + File.separator + name_file_xml;
 	Scanner scanner;
 	Library my_libr;
 	
@@ -29,7 +30,7 @@ public class command_line_view {
 		System.out.println("5) Create booking");
 		System.out.println("6) Delete booking");
 		System.out.println("7) Exit");
-		System.out.print("Choose what you wanna do:");
+		System.out.print("Choose what you wanna do: ");
 		int command_to_execute = scanner.nextInt();
 		
 		return command_to_execute;
@@ -45,7 +46,10 @@ public class command_line_view {
 		if ( logged_in!= null || logged_in instanceof User ) {
 			System.out.println("Logged in! Welcome "+ logged_in.getUsername() + "!");
 		}else {
-			System.out.println("Login failed! User of password incorrect.");
+			System.out.println("Login failed! User or password incorrect.");
+			System.out.println("--------------");
+			System.out.println("");
+			login();
 		}
 	}
 

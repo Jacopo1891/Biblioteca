@@ -2,7 +2,6 @@ package gest_dati;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.LinkedList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -62,15 +61,50 @@ public class XMLMng implements DataMng {
 		return null;
 	}
 
-	public Node getBooksAvailable() {
+	public NodeList getBooksAvailable() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public Node getBook(String[] param, String[] value) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	public Book searchBook(String[] param, String[] value) {
+		/**
+		 * Looks for a book
+		 * @return Book if found / Null
+		 */	
+			Document doc;
+			try {
+				doc = readFile(xml_file);
+				doc.getDocumentElement().normalize();
+				NodeList books = searchElement( doc , "Book");
+				for(int i = 0; i < books.getLength(); i++) {
+					Element book_list = (Element) books.item(i);
+					boolean found = true;
+					for (int j = 0; j < param.length; j++) {
+						String temp_param = param[j];
+						String temp_value = value[j];
+						
+						if ( !book_list.getAttribute(temp_param).equals( temp_value )) {
+							found = false;
+							break;
+						}
+					}
+					
+					if ( found ) {
+						Book book_found = createBookFromData( book_list );
+						
+						return book_found;
+					}
+				}
+				
+			} catch (ParserConfigurationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (TransformerException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
 
 	public boolean insertNewBooking(Reservation r) {
 		// TODO Auto-generated method stub
@@ -255,6 +289,26 @@ public class XMLMng implements DataMng {
 		temp.setPassword(temp_pass);
 		
 		return temp;
+	}
+	
+	private Book createBookFromData(Element e) {
+		
+		Book book_found = new Book();
+		
+		int book_id = Integer.parseInt(e.getAttribute("BookId"));
+		String book_title = e.getAttribute("Title");
+		String book_author = e.getAttribute("Author");
+		String book_publisher = e.getAttribute("Publisher");
+		int book_quantity = Integer.parseInt(e.getAttribute("Quantity"));
+		
+		book_found.setBookId( book_id );
+		book_found.setAuthor( book_author );
+		book_found.setTitle( book_title );
+		book_found.setPublischingHouse( book_publisher );
+		book_found.setQuantity( book_quantity );
+		
+		return book_found;
+		
 	}
 	
 
