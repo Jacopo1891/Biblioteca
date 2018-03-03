@@ -41,9 +41,9 @@ public class Library {
 	}
 	
 	public User login( String user, String pass ) {
-		User checkOnFile = data.checkLoginData(user, pass);
-		if ( checkOnFile!= null || checkOnFile instanceof User ) {
-			return checkOnFile;
+		User check_login_data = data.checkLoginData(user, pass);
+		if ( check_login_data!= null || check_login_data instanceof User ) {
+			return check_login_data;
 		}
 		return null;
 	}
