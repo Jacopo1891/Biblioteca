@@ -4,16 +4,16 @@ import java.util.Date;
 
 public class Reservation {
 	
-	private int id;
+	private int ReservationId;
 	private int UserIdr;
 	private int BookId;
 	private Date StartDate;
 	private Date EndDate;
-	public int getId() {
-		return id;
+	public int getReservationId() {
+		return ReservationId;
 	}
-	public void setId(int id) {
-		this.id = id;
+	public void setReservationId(int id) {
+		this.ReservationId = id;
 	}
 	public int getUserIdr() {
 		return UserIdr;

@@ -2,10 +2,13 @@
 <Library>
 	<Users>
 		<User Password="Admin" Role="Admin" UserId="1" Username="Admin"/>
+		<User Password="User" Role="User" UserId="2" Username="User"/>
 	</Users>
 	<Books>
 		<Book Author="Jack London" BookId="1" Publisher="DeAgostini" Quantity="1" Title="Zanna Bianca"/>
-		<Book Author="J.R.R. Tolkien" BookId="2" Publisher="DeAgostini" Quantity="1" Title="Lo Hobit"/>
+		<Book Author="J.R.R. Tolkien" BookId="2" Publisher="DeAgostini" Quantity="2" Title="Lo Hobbit"/>
 	</Books>
-	<Reservations/>
+	<Reservations>
+		<Reservation ReservationId="1" BookId="2" UserId="2" StartDate="02/03/2018" EndDate="02/04/2018"/>
+	</Reservations>
 </Library>

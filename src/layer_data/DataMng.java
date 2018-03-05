@@ -1,4 +1,6 @@
-package gest_dati;
+package layer_data;
+
+import java.util.LinkedList;
 
 import org.w3c.dom.NodeList;
 
@@ -16,4 +18,8 @@ public interface DataMng {
 	public boolean deleteBook( Book b, User u );
 	public boolean insertNewBooking( Reservation r );
 	public boolean deleteBooking( Reservation r );
+	
+	public LinkedList<Book> getBooks();
+	public LinkedList<User> getUsers();
+	public LinkedList<Reservation> getReservations();
 }

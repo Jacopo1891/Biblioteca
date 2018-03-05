@@ -1,39 +1,35 @@
 package business_logic;
-import java.util.Date;
-
-import org.w3c.dom.Node;
-
-import entity.User;
-import gest_dati.DataMng;
-import gest_dati.XMLMng;
+import java.util.LinkedList;
+import entity.*;
+import layer_data.*;
 
 public class Library {
 	
-	private Node Books;
-	private Node Users;
-	private Node Reservations;
+	private LinkedList<Book> Books;
+	private LinkedList<User> Users;
+	private LinkedList<Reservation> Reservations;
 	private DataMng data;
 	
 	public Library () {
 		
 	}
 	
-	public Node getBooks() {
+	public LinkedList<Book> getBooks() {
 		return Books;
 	}
-	public void setBooks(Node books) {
+	public void setBooks(LinkedList<Book> books) {
 		Books = books;
 	}
-	public Node getUsers() {
+	public LinkedList<User> getUsers() {
 		return Users;
 	}
-	public void setUsers(Node users) {
+	public void setUsers(LinkedList<User> users) {
 		Users = users;
 	}
-	public Node getReservations() {
+	public LinkedList<Reservation> getReservations() {
 		return Reservations;
 	}
-	public void setReservations(Node reservations) {
+	public void setReservations(LinkedList<Reservation> reservations) {
 		Reservations = reservations;
 	}
 	
@@ -49,6 +45,11 @@ public class Library {
 		return null;
 	}
 	
+	public void loadData() {
+		setBooks( data.getBooks() );
+		setUsers( data.getUsers() );
+		setReservations( data.getReservations() );
+	}
 	
 	
 }
