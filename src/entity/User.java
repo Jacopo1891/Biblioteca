@@ -1,4 +1,4 @@
-package backend;
+package entity;
 
 
 public class User {

@@ -3,8 +3,8 @@ package frontend;
 import java.io.File;
 import java.util.Scanner;
 
-import backend.Library;
-import backend.User;
+import business_logic.Library;
+import entity.User;
 
 public class command_line_view {
 	

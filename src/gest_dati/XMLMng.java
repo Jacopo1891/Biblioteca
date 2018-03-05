@@ -18,9 +18,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import backend.Book;
-import backend.Reservation;
-import backend.User;
+import entity.Book;
+import entity.Reservation;
+import entity.User;
 
 public class XMLMng implements DataMng {
 	

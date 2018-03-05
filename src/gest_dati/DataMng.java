@@ -1,9 +1,10 @@
 package gest_dati;
 
 import org.w3c.dom.NodeList;
-import backend.Book;
-import backend.Reservation;
-import backend.User;
+
+import entity.Book;
+import entity.Reservation;
+import entity.User;
 
 public interface DataMng {
 

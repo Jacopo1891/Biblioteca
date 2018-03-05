@@ -1,8 +1,9 @@
-package backend;
+package business_logic;
 import java.util.Date;
 
 import org.w3c.dom.Node;
 
+import entity.User;
 import gest_dati.DataMng;
 import gest_dati.XMLMng;
 
