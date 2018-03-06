@@ -2,12 +2,15 @@ package layer_data;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.AccessControlException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
+import java.util.stream.Stream;
 
+import javax.security.auth.login.FailedLoginException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -17,15 +20,14 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import entity.Book;
-import entity.Reservation;
-import entity.User;
+import java.util.Arrays;
+
+import entity.*;
 
 public class XMLMng implements DataMng {
 	
@@ -41,20 +43,21 @@ public class XMLMng implements DataMng {
 	 * @return True / False
 	 */	
 		Document doc;
+		User user_logged = null;
 		try {
 			doc = readFile(xml_file);
 			doc.getDocumentElement().normalize();
-			NodeList users = searchElement( doc , "User");
+			NodeList users = searchElementGroup( doc , "User");
 			for(int i = 0; i < users.getLength(); i++) {
 				Element list_user = (Element) users.item(i);
 				if( list_user.getAttribute("Username").equals( user )  && list_user.getAttribute("Password").equals(pass) ) {
 
-					User user_logged = createUserFromData( list_user );
+					user_logged = createUserFromData( list_user );
 					
 					return user_logged;
 				}
 			}
-			
+
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -62,7 +65,7 @@ public class XMLMng implements DataMng {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
+		return user_logged;
 	}
 
 	public NodeList getBooksAvailable() {
@@ -79,7 +82,7 @@ public class XMLMng implements DataMng {
 			try {
 				doc = readFile(xml_file);
 				doc.getDocumentElement().normalize();
-				NodeList books = searchElement( doc , "Book");
+				NodeList books = searchElementGroup( doc , "Book");
 				for(int i = 0; i < books.getLength(); i++) {
 					Element book_list = (Element) books.item(i);
 					boolean found = true;
@@ -120,13 +123,83 @@ public class XMLMng implements DataMng {
 		return false;
 	}
 
-	public boolean insertNewBook(Book b, User u) {
-		// TODO Auto-generated method stub
+	public boolean insertNewBook(String[] param, String[] value, User u) {
+		/**
+		 * Insert a new Book, if already exists update stat ( quantity + 1)
+		 * @return boolean 
+		 */		
+		try {
+			if ( ! u.getRole().equals("Admin")) {
+				throw new AccessControlException("Permission denided. You're not Admin!");
+			}
+			Document doc = readFile( xml_file );
+			Book temp_b = searchBook(param, value);
+			if ( temp_b == null ) {
+				
+				int new_id = getNewIdBook();
+				String [] temp = {"BookId", "Quantity"};
+				param = Stream.concat(Arrays.stream(temp), Arrays.stream(param)).toArray(String[]::new);
+				
+				temp[0] = Integer.toString( new_id );
+				temp[1] = "1";
+				value = Stream.concat(Arrays.stream(temp), Arrays.stream(value)).toArray(String[]::new);
+				
+				doc = insertElement( doc, "Book", param, value);
+				writeFile( doc, xml_file );
+				return true;
+			} else if( temp_b != null && temp_b instanceof Book) {
+				
+				temp_b.setQuantity( temp_b.getQuantity() + 1 );
+				return updateBook ( temp_b, u );
+			}
+			
+		} catch ( AccessControlException e) {
+			return false;
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return false;
 	}
 
 	public boolean updateBook(Book b, User u) {
-		// TODO Auto-generated method stub
+		/**
+		 * Update data of Book
+		 * @return boolean 
+		 */		
+		try {
+			if ( ! u.getRole().equals("Admin")) {
+				throw new AccessControlException("Permission denided. You're not Admin!");
+			}
+			Document doc = readFile( xml_file );
+			NodeList books = searchElementGroup( doc, "Book" );
+			for(int i = 0; i < books.getLength(); i++) {
+				Element book = (Element) books.item(i);
+				
+				if ( b.getBookId() == Integer.parseInt(book.getAttribute( "BookId" )) );{
+					
+					book.setAttribute("Title", b.getTitle());
+					book.setAttribute("Author", b.getAuthor());
+					book.setAttribute("Publisher", b.getPublischingHouse());
+					book.setAttribute("Quantity", Integer.toString(b.getQuantity()) );
+					writeFile( doc, xml_file );
+					return true;
+				}
+				
+			}
+			
+		} catch ( AccessControlException e) {
+			return false;
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return false;
 	}
 
@@ -225,7 +298,7 @@ public class XMLMng implements DataMng {
 		//System.out.println("File saved!");
 	}
 	
-	public NodeList searchElement(Document d, String type) {
+	public NodeList searchElementGroup(Document d, String type) {
 		/**
 		 * Search element by tag (type = Users/Books/Reservations) xml
 		 * @return NodeList with that tag 
@@ -268,7 +341,7 @@ public class XMLMng implements DataMng {
 				break;
 		}
 		
-		NodeList elementListFather = searchElement(d, FatherType);
+		NodeList elementListFather = searchElementGroup(d, FatherType);
 		
 		Element elementFather = (Element) elementListFather.item(0);
 		
@@ -350,7 +423,7 @@ public class XMLMng implements DataMng {
 		LinkedList<Book> books = new LinkedList<Book>();
 		try {
 			Document doc = readFile( xml_file );
-			NodeList books_list = searchElement( doc, "Book");
+			NodeList books_list = searchElementGroup( doc, "Book");
 			for (int i = 0; i < books_list.getLength(); i++ ) {
 				Book book_temp = createBookFromData ( (Element) books_list.item( i ) );
 				books.add(book_temp);
@@ -367,7 +440,7 @@ public class XMLMng implements DataMng {
 		LinkedList<User> users = new LinkedList<User>();
 		try {
 			Document doc = readFile( xml_file );
-			NodeList users_list = searchElement( doc, "User");
+			NodeList users_list = searchElementGroup( doc, "User");
 			for (int i = 0; i < users_list.getLength(); i++ ) {
 				User user_temp = createUserFromData ( (Element) users_list.item( i ) );
 				users.add(user_temp);
@@ -384,7 +457,7 @@ public class XMLMng implements DataMng {
 		LinkedList<Reservation> reservations = new LinkedList<Reservation>();
 		try {
 			Document doc = readFile( xml_file );
-			NodeList reservations_list = searchElement( doc, "Reservation");
+			NodeList reservations_list = searchElementGroup( doc, "Reservation");
 			for (int i = 0; i < reservations_list.getLength(); i++ ) {
 				Reservation user_temp = createReservationFromData ( (Element) reservations_list.item( i ) );
 				reservations.add(user_temp);
@@ -446,7 +519,26 @@ public class XMLMng implements DataMng {
 		}
 		
 	}
-
+	
+	public int getNewIdBook() {
+		int id_max = 0;
+		try {
+			Document doc = readFile( xml_file );
+			NodeList books_list = searchElementGroup( doc, "Book");
+			for (int i = 0; i < books_list.getLength(); i++ ) {
+				String book_id =  ((Element)books_list.item( i )).getAttribute("BookId");
+				if ( id_max < Integer.parseInt(book_id)) {
+					id_max =  Integer.parseInt(book_id);
+				}
+			}			
+			
+		} catch (ParserConfigurationException | TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return id_max + 1;
+	}
+	
 	
 
 }

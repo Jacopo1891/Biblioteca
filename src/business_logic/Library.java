@@ -14,6 +14,14 @@ public class Library {
 		
 	}
 	
+	public DataMng getData() {
+		return data;
+	}
+
+	public void setData(DataMng data) {
+		this.data = data;
+	}
+
 	public LinkedList<Book> getBooks() {
 		return Books;
 	}
@@ -49,6 +57,12 @@ public class Library {
 		setBooks( data.getBooks() );
 		setUsers( data.getUsers() );
 		setReservations( data.getReservations() );
+	}
+	
+	public boolean insertNewBook ( String[] param, String[] value, User u ) {
+		
+		
+		return data.insertNewBook(param, value, u);
 	}
 	
 	

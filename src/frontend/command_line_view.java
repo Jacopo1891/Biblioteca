@@ -40,7 +40,7 @@ public class command_line_view {
 		System.out.println("6) Exit");
 		System.out.print("Choose what you wanna do: ");
 		int command_to_execute = scanner.nextInt();
-		
+		scanner.nextLine(); // To ignore newline after int choice
 		return command_to_execute;
 	}
 	
@@ -55,6 +55,7 @@ public class command_line_view {
 		return command_to_execute;
 	}
 	public void login() {
+		System.out.println("Insert data to log in");
 		System.out.print("Username: ");
 		String username = scanner.next().replace("\n", "");
 		System.out.print("Password: ");
@@ -67,9 +68,48 @@ public class command_line_view {
 			System.out.print("");
 		}else {
 			System.out.println("Login failed! User or password incorrect.");
+			System.out.println("");
 			System.out.println("  !--------------------------------------------!");
 			System.out.println("");
 			login();
+		}
+	}
+	
+	public void insertNewBook() {
+		System.out.println("Create a new book!");
+		String [] param = {"Title", "Author", "Publisher"};
+		String [] value = new String[3];
+		
+		System.out.print("Insert book's title: ");
+		value[0] = scanner.nextLine().replace("\n", "");
+		while ( value[0]== null || value[0].isEmpty()) {	
+			System.out.println("Book's title can not be empty!");
+			System.out.print("Insert book's title: ");
+			value[0] = scanner.nextLine().replace("\n", "");			
+		}
+
+		System.out.print("Insert book's author: ");
+		value[1] = scanner.nextLine().replace("\n", "");
+		while ( value[1]== null || value[1].isEmpty()) {	
+			System.out.println("Book's author can not be empty!");
+			System.out.print("Insert author's title: ");
+			value[1] = scanner.nextLine().replace("\n", "");			
+		}
+
+		System.out.print("Insert book's publisher: ");
+		value[2] = scanner.nextLine().replace("\n", "");
+		while ( value[2]== null || value[2].isEmpty()) {	
+			System.out.println("Book's publisher can not be empty!");
+			System.out.print("Insert book's publisher: ");
+			value[2] = scanner.nextLine().replace("\n", "");			
+		}
+		
+		boolean result = my_libr.insertNewBook(param, value, logged_user);
+		
+		if ( result ) {
+			System.out.println("New book '" + value[0] + "' by "+ value[1] +" saved!");
+		} else {
+			System.out.println("Ooops! Something goes wrong!");
 		}
 	}
 
@@ -80,7 +120,6 @@ public class command_line_view {
 		boolean work = true;
 		
 		System.out.println("  !-- WELCOME TO LIBRARY CONSOLE APPLICATION --!");
-		System.out.println("Insert data to log in");
 		
 		cmd_library.login();	// Login before all
 		
@@ -90,11 +129,10 @@ public class command_line_view {
 					command = cmd_library.command_choice_admin ();			
 					
 					switch (command) {
-					case 1: return;
-						//break;
+					case 1: cmd_library.insertNewBook();
+						break;
 					case 6: work = false; 
 						break;
-						
 					}
 					
 				}
@@ -112,6 +150,8 @@ public class command_line_view {
 					}
 			}
 		}
+		
+		System.out.println("  !- LIBRARY CONSOLE APPLICATION LOGGING OUT -!");
 		
 
 	}
