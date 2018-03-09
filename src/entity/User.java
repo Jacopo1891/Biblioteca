@@ -1,11 +1,18 @@
 package entity;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 
+@XmlRootElement
 public class User {
-	
-	private int userId;
+
+	@XmlAttribute
+	private int userId;	
+	@XmlAttribute
 	private String username;
+	@XmlAttribute
 	private String password;
+	@XmlAttribute
 	private String role; 
 	
 	public int getUserId() {

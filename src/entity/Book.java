@@ -1,11 +1,19 @@
 package entity;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
+@XmlRootElement
 public class Book {
-	
+	@XmlAttribute
 	private int BookId;
+	@XmlAttribute
 	private String Title;
+	@XmlAttribute
 	private String Author;
+	@XmlAttribute
 	private String PublischingHouse;
+	@XmlAttribute
 	private int Quantity;
 	
 	public int getBookId() {

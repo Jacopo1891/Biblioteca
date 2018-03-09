@@ -2,12 +2,20 @@ package business_logic;
 import java.util.LinkedList;
 import entity.*;
 import layer_data.*;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
+@XmlRootElement
 public class Library {
 	
+	@XmlElement
 	private LinkedList<Book> Books;
+	@XmlElement
 	private LinkedList<User> Users;
+	@XmlElement
 	private LinkedList<Reservation> Reservations;
+	@XmlTransient
 	private DataMng data;
 	
 	public Library () {
