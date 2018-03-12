@@ -112,6 +112,10 @@ public class command_line_view {
 			System.out.println("Ooops! Something goes wrong!");
 		}
 	}
+	
+	public void deleteBook() {
+		
+	}
 
 	public static void main(String[] args) {
 
@@ -150,10 +154,7 @@ public class command_line_view {
 					}
 			}
 		}
-		
 		System.out.println("  !- LIBRARY CONSOLE APPLICATION LOGGING OUT -!");
-		
-
 	}
 
 }

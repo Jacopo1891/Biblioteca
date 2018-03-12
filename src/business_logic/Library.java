@@ -5,6 +5,8 @@ import layer_data.*;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 
 @XmlRootElement
 public class Library {
@@ -68,9 +70,13 @@ public class Library {
 	}
 	
 	public boolean insertNewBook ( String[] param, String[] value, User u ) {
-		
-		
+				
 		return data.insertNewBook(param, value, u);
+	}
+	
+	public boolean deleteBook ( Book b, User u ) throws ParserConfigurationException, TransformerException {
+		
+		return data.deleteBook( b, u );
 	}
 	
 	

@@ -1,5 +1,6 @@
 package layer_data;
 
+import java.awt.List;
 import java.io.File;
 import java.io.IOException;
 import java.security.AccessControlException;
@@ -25,6 +26,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import entity.*;
@@ -68,17 +70,18 @@ public class XMLMng implements DataMng {
 		return user_logged;
 	}
 
-	public NodeList getBooksAvailable() {
+	public LinkedList<Book> getBooksAvailable() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public Book searchBook(String[] param, String[] value) {
+	public LinkedList<Book> searchBook(String[] param, String[] value) {
 		/**
 		 * Looks for a book
 		 * @return Book if found / Null
 		 */	
 			Document doc;
+			LinkedList<Book> result = new LinkedList<Book>();
 			try {
 				doc = readFile(xml_file);
 				doc.getDocumentElement().normalize();
@@ -98,8 +101,7 @@ public class XMLMng implements DataMng {
 					
 					if ( found ) {
 						Book book_found = createBookFromData( book_list );
-						
-						return book_found;
+						result.add( book_found );				
 					}
 				}
 				
@@ -110,7 +112,7 @@ public class XMLMng implements DataMng {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			return null;
+			return result;
 		}
 
 	public boolean insertNewBooking(Reservation r) {
@@ -133,8 +135,8 @@ public class XMLMng implements DataMng {
 				throw new AccessControlException("Permission denided. You're not Admin!");
 			}
 			Document doc = readFile( xml_file );
-			Book temp_b = searchBook(param, value);
-			if ( temp_b == null ) {
+			LinkedList<Book> temp_b = searchBook(param, value);
+			if ( temp_b.isEmpty() ) {
 				
 				int new_id = getNewIdBook();
 				String [] temp = {"BookId", "Quantity"};
@@ -147,10 +149,10 @@ public class XMLMng implements DataMng {
 				doc = insertElement( doc, "Book", param, value);
 				writeFile( doc, xml_file );
 				return true;
-			} else if( temp_b != null && temp_b instanceof Book) {
-				
-				temp_b.setQuantity( temp_b.getQuantity() + 1 );
-				return updateBook ( temp_b, u );
+			} else if( !temp_b.isEmpty() && temp_b.size() <= 1) {
+				Book book_temp = temp_b.getFirst();
+				book_temp.setQuantity( book_temp.getQuantity() + 1 );
+				return updateBook ( book_temp, u );
 			}
 			
 		} catch ( AccessControlException e) {
@@ -203,8 +205,31 @@ public class XMLMng implements DataMng {
 		return false;
 	}
 
-	public boolean deleteBook(Book b, User u) {
-		// TODO Auto-generated method stub
+	public boolean deleteBook(Book b, User u) throws ParserConfigurationException, TransformerException {
+		/**
+		 * Delete a Book, if is not reserved
+		 * @return boolean 
+		 */		
+		if ( ! u.getRole().equals("Admin")) {
+			throw new AccessControlException("Permission denided. You're not Admin!");
+		}
+		Document doc = readFile( xml_file );
+		NodeList res = searchElementGroup( doc, "Reservation");
+		for ( int i = 0; i< res.getLength(); i++) {
+			Element reservation = (Element) res.item(i);
+			int id_book_to_delete = Integer.parseInt( reservation.getAttribute("BookId") );
+			if ( id_book_to_delete == b.getBookId()) {
+				String err = "Action delete denided.";
+				int user_id_block = Integer.parseInt( reservation.getAttribute("UserId") );
+				User user_block = getUserById ( doc, user_id_block );
+				err += "Book '" + b.getTitle() + "is reserved by " + user_block.getUsername();
+				err += "from " + reservation.getAttribute("StartDate") + " to " + reservation.getAttribute("EndDate");
+				throw new AccessControlException( err );
+			}
+		}
+				
+			
+
 		return false;
 	}
 	
@@ -537,6 +562,20 @@ public class XMLMng implements DataMng {
 			e.printStackTrace();
 		}
 		return id_max + 1;
+	}
+	
+	private User getUserById ( Document doc, int id) {
+		
+		User u = null;
+		NodeList users = searchElementGroup ( doc, "User" ); 
+		for (int i = 0; i < users.getLength(); i++ ) {
+			User user_temp = createUserFromData ( (Element) users.item( i ) );
+			if (user_temp.getUserId() == id) {
+				return user_temp;
+			}
+		}			
+		
+		return null;		
 	}
 	
 	
