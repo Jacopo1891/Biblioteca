@@ -16,6 +16,23 @@ public class Book {
 	@XmlAttribute
 	private int Quantity;
 	
+	public Book() {	}
+	
+	public Book( String title, String author, String publisher) {
+		setTitle( title );
+		setAuthor( author );
+		setPublischingHouse( publisher );
+		setQuantity( 1 );
+	}
+
+	public Book(int id, String title, String author, String publisher, int quantity) {
+		setBookId( id );
+		setTitle( title );
+		setAuthor( author );
+		setPublischingHouse( publisher );
+		setQuantity( quantity );
+	}
+	
 	public int getBookId() {
 		return BookId;
 	}

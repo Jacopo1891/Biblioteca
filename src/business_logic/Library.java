@@ -55,6 +55,10 @@ public class Library {
 		data = new XMLMng(path_file);
 	}
 	
+	public void connectToData( String user, String pass, String host, int port ) {
+		data = new DBMng( user, pass, host, port);
+	}
+	
 	public User login( String user, String pass ) {
 		User check_login_data = data.checkLoginData(user, pass);
 		if ( check_login_data!= null || check_login_data instanceof User ) {

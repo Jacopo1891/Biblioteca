@@ -15,6 +15,23 @@ public class User {
 	@XmlAttribute
 	private String role; 
 	
+	public User () {
+		
+	}
+	
+	public User(int id, String u, String p, String r ) {
+		setUserId( id );
+		setUsername( u );
+		setPassword( p );
+		setRole( r );
+	}
+	
+	public User(String u, String p, String r ) {
+		setUsername( u );
+		setPassword( p );
+		setRole( r );
+	}
+	
 	public int getUserId() {
 		return userId;
 	}
