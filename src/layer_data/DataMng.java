@@ -12,7 +12,7 @@ public interface DataMng {
 	public LinkedList<Book> searchBook(String[] param, String[] value);
 	public boolean insertNewBook(String[] param, String[] value, User u) ;
 	public boolean updateBook( Book b, User u ) ;
-	public boolean deleteBook( Book b, User u );
+	public boolean deleteBook( Book b, User u ) throws ParserConfigurationException, TransformerException ;
 	public boolean insertNewBooking( Reservation r ) ;
 	public boolean deleteBooking( Reservation r ) ;
 	

@@ -78,14 +78,9 @@ public class Library {
 		return data.insertNewBook(param, value, u);
 	}
 	
-	public boolean deleteBook ( Book b, User u ) {
+	public boolean deleteBook ( Book b, User u ) throws ParserConfigurationException, TransformerException {
 		
 		return data.deleteBook( b, u );
-	}
-
-	public LinkedList<Book> searchBook(String[] param, String[] value) {
-		
-		return data.searchBook(param, value);
 	}
 	
 	
