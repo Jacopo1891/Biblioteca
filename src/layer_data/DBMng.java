@@ -3,14 +3,11 @@ package layer_data;
 import java.math.BigDecimal;
 import java.security.AccessControlException;
 import java.sql.*;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-
-import Helpers.EditString;
 import entity.*;
 
 public class DBMng implements DataMng {
@@ -86,7 +83,7 @@ public class DBMng implements DataMng {
 
 	public User checkLoginData( String user, String pass ) {
 		
-		User user_logged = null;
+		User user_logged = new User();
 		
 		String check_user_query = "SELECT * FROM USERS WHERE USERNAME = '"+ user +"' AND PASSWORD ='" + pass +"'";
 		LinkedList<Map<String, Object>> user_data_db = db_query( check_user_query );
@@ -151,27 +148,16 @@ public class DBMng implements DataMng {
 		}
 	}
 
+	@Override
 	public LinkedList<Book> getBooksAvailable() {
-		/**
-		 * search books inside BOOKS that are not in RESERVATIONS
-		 * @return list of Book obj
-		 */
-		
-		String query_book_available = "SELECT * FROM BOOKS WHERE BOOK_ID NOT IN (SELECT R_BOOK_ID FROM RESERVATIONS);";
-		LinkedList<Map<String, Object>> book_availables = db_query( query_book_available );
-		LinkedList<Book> result = new LinkedList<Book>();
-		for (int i = 0; i < book_availables.size(); i++ ) {
-			Book temp = createBookFromData( book_availables.get( i ) );
-			result.add( temp );
-		}
-		
- 		return result;
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	public LinkedList<Book> searchBook( String[] param, String[] value ) {
 	/**
 	 * search books inside BOOKS using params and values
-	 * @return List of Book obj	
+	 * @return List of book obj	
 	 */
 		String query = "SELECT * FROM BOOKS WHERE (";
 		LinkedList<Map<String, Object>> res_query = null;
@@ -187,7 +173,7 @@ public class DBMng implements DataMng {
 			return result;
 		} else {
 			for (int i = 0; i < res_query.size(); i++) {
-				Book b_temp = createBookFromData( res_query.get(i) );
+				Book b_temp = createBookFormData( res_query.get(i) );
 				result.add( b_temp );
 			}
 		}
@@ -221,60 +207,20 @@ public class DBMng implements DataMng {
 		}
 	}
 
-	public boolean updateBook( Book b, User u) {
-		/**
-		 * Update a Book with new info 
-		 * @return boolean 
-		 */		
-		if ( ! u.getRole().equals("Admin")) {
-			throw new AccessControlException("Permission denided. You're not Admin!");
-		}
-		String query_update = "UPDATE BOOKS SET "
-				+ "AUTHOR = '" + b.getAuthor() + "'"
-				+ "PUBLISHER ='" + b.getPublischingHouse() + "'"
-				+ "QUANTITY = "+ b.getQuantity() +" WHERE BOOK_ID = "+b.getBookId();
-		boolean check = db_query_update( query_update );
-		
-		return check;
+	@Override
+	public boolean updateBook(Book b, User u) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
-	public boolean deleteBook(Book b, User u) {
-		/**
-		 * Delete a Book, if is not reserved
-		 * @return boolean 
-		 */		
-		if ( ! u.getRole().equals("Admin")) {
-			throw new AccessControlException("Permission denided. You're not Admin!");
-		}
-		String query_lent_books = "SELECT * FROM BOOKS JOIN RESERVATIONS ON ( RESERVATIONS.R_BOOK_ID = BOOKS.BOOK_ID ) JOIN USERS ON (RESERVATIONS.R_USER_ID = USERS.USER_ID) WHERE BOOKS.BOOK_ID = "+ b.getBookId();
-		LinkedList<Map<String, Object>> result = db_query( query_lent_books );
-		if ( result.isEmpty()  || result.size() < b.getQuantity()) {
-			String query_update = "UPDATE BOOKS SET QUANTITY = QUANTITY - 1 WHERE BOOK_ID = "+ b.getBookId();
-			boolean res_update = db_query_update( query_update );
-			System.out.print("Esco qua " + res_update);
-			return res_update;
-		}
-		else if ( b.getQuantity() > 0) {
-			String error_string = "Delete denided. Delete blocked because the book '"+ EditString.Capitalize( b.getTitle() )+"' is lend to: ";
-			for (int i = 0; i < result.size(); i++ ) {
-				String username = EditString.Capitalize((String) result.get( i ).get( "USERNAME" ));
-				
-				SimpleDateFormat data_format = new SimpleDateFormat("dd/MM/yyyy");
-				Timestamp start_data = (Timestamp) result.get( i ).get( "START_DATE" );
-				Timestamp end_data = (Timestamp) result.get( i ).get( "END_DATE" );
-				error_string += "\n- Copy n°"+ (i + 1) +" to " + EditString.Capitalize( username ) +" from "+  data_format.format( start_data )  + " until " + data_format.format( end_data );
-			}
-			System.out.println( error_string );
-			return false;
-		}
-		System.out.print("Esco qui");
+	@Override
+	public boolean deleteBook(Book b, User u) throws ParserConfigurationException, TransformerException {
+		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean insertNewBooking(Reservation r) {
-		
-		//String query = 'INSERT INTO RESERVATIONS (R_BOOK_ID, R_USER_ID, START_DATE, END_DATE) VALUES (21,22, TO_DATE("2018-03-20","yyyy-MM-dd"), TO_DATE("2018-04-20","yyyy-MM-dd"))';
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -370,13 +316,21 @@ public class DBMng implements DataMng {
 		 * @return LinkedList of Map obj <Column_name, Value>
 		 */
 		LinkedList<Map<String, Object>> result = new LinkedList<Map<String, Object>>();
+		Map<String, Object> row = null;
 		Statement conn = null;
 		
 		try {
 			conn = connect_to_db();
 			ResultSet r = conn.executeQuery( query );
 			//System.out.println( query );
-			result = statementToList( r );
+			ResultSetMetaData metaData = r.getMetaData();
+			while( r.next() ) {
+				row = new HashMap<String, Object>();
+				for ( int i = 1; i <= metaData.getColumnCount(); i++ ) {
+					row.put(metaData.getColumnName( i ), r.getObject( i ));
+				}
+				result.add( row );
+			}
 		} catch (SQLException e) {
 			//System.out.println("Query failed: " + e.getMessage());
 			e.printStackTrace();
@@ -420,29 +374,7 @@ public class DBMng implements DataMng {
 		return ( r < 0 ) ? false : true;
 	}
 	
-	private LinkedList<Map<String, Object>> statementToList ( ResultSet r){
-		
-		LinkedList<Map<String, Object>> result = new LinkedList<Map<String, Object>>();
-
-		try {
-			while( r.next() ) {
-				ResultSetMetaData metaData = r.getMetaData();
-				Map<String, Object> row = null;
-				row = new HashMap<String, Object>();
-				for ( int i = 1; i <= metaData.getColumnCount(); i++ ) {
-					row.put(metaData.getColumnName( i ), r.getObject( i ));
-				}
-				result.add( row );
-			}
-		} catch (SQLException e) {
-			System.out.println("Error parsing ResultSet from DB.");
-			e.printStackTrace();
-		}
-		
-		return result;
-	}
-	
-	public Book createBookFromData( Map<String, Object> element ) {
+	public Book createBookFormData( Map<String, Object> element ) {
 		/**
 		 * Create a Book obj from DB's data mapped
 		 * @return Book
