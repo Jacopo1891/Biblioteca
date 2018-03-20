@@ -1,9 +1,15 @@
 package frontend;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.Scanner;
 
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+
+import Helpers.EditString;
 import business_logic.Library;
+import entity.Book;
 import entity.User;
 
 public class command_line_view {
@@ -75,8 +81,8 @@ public class command_line_view {
 		}
 	}
 	
-	public void insertNewBook() {
-		System.out.println("Create a new book!");
+	public String[][] getBookInputData( boolean b){
+		
 		String [] param = {"Title", "Author", "Publisher"};
 		String [] value = new String[3];
 		
@@ -90,7 +96,7 @@ public class command_line_view {
 
 		System.out.print("Insert book's author: ");
 		value[1] = scanner.nextLine().replace("\n", "");
-		while ( value[1]== null || value[1].isEmpty()) {	
+		while ( value[1]== null || value[1].isEmpty() ) {	
 			System.out.println("Book's author can not be empty!");
 			System.out.print("Insert author's title: ");
 			value[1] = scanner.nextLine().replace("\n", "");			
@@ -98,12 +104,22 @@ public class command_line_view {
 
 		System.out.print("Insert book's publisher: ");
 		value[2] = scanner.nextLine().replace("\n", "");
-		while ( value[2]== null || value[2].isEmpty()) {	
+		while ( b && (value[2]== null || value[2].isEmpty() ) ) {	
 			System.out.println("Book's publisher can not be empty!");
 			System.out.print("Insert book's publisher: ");
 			value[2] = scanner.nextLine().replace("\n", "");			
 		}
 		
+		String[][] book_data = new String[][] { value, param};
+		return book_data;
+	}
+	
+	public void insertNewBook() {
+		
+		System.out.println("Create a new book!");
+		String[][] book_values = getBookInputData( true );
+		String [] param = (String[]) book_values[0];
+		String [] value = (String[]) book_values[1];
 		boolean result = my_libr.insertNewBook(param, value, logged_user);
 		
 		if ( result ) {
@@ -115,8 +131,44 @@ public class command_line_view {
 	
 	public void deleteBook() {
 		
+		System.out.println("Delete a book!");
+		String [] param = {"Title", "Author", "Publisher"};
+		String [] value = new String[3];
+		
+		System.out.print("Insert book's title: ");
+		value[0] = scanner.nextLine().replace("\n", "");
+		while ( value[0]== null || value[0].isEmpty()) {	
+			System.out.println("Book's title can not be empty!");
+			System.out.print("Insert book's title: ");
+			value[0] = scanner.nextLine().replace("\n", "");			
+		}
+
+		System.out.print("Insert book's author: ");
+		value[1] = scanner.nextLine().replace("\n", "");
+		while ( value[1]== null || value[1].isEmpty() ) {	
+			System.out.println("Book's author can not be empty!");
+			System.out.print("Insert author's title: ");
+			value[1] = scanner.nextLine().replace("\n", "");			
+		}
+
+		System.out.print("Insert book's publisher: ");
+		value[2] = scanner.nextLine().replace("\n", "");			
+		
+		Book book_to_delete = my_libr.searchBook( param, value ).getFirst();
+		boolean result;
+		result = my_libr.deleteBook( book_to_delete, logged_user);
+		
+		if ( result ) {
+			System.out.println("Deleted book '" + EditString.Capitalize(book_to_delete.getTitle()) + "' by "+ EditString.Capitalize(book_to_delete.getAuthor()) +"!");
+		} else {
+			System.out.println("Ooops! Something goes wrong!");
+		}
 	}
 
+	public void updateBook() {
+		
+	}
+	
 	public static void main(String[] args) {
 
 		command_line_view cmd_library = new command_line_view();
@@ -134,6 +186,10 @@ public class command_line_view {
 					
 					switch (command) {
 					case 1: cmd_library.insertNewBook();
+						break;
+					case 3: cmd_library.deleteBook();
+						break;
+					case 4: cmd_library.updateBook();
 						break;
 					case 6: work = false; 
 						break;
@@ -154,7 +210,7 @@ public class command_line_view {
 					}
 			}
 		}
-		System.out.println("  !- LIBRARY CONSOLE APPLICATION LOGGING OUT -!");
+		System.out.println("  !- LIBRARY CONSOLE APPLICATION LOGGED OUT -!");
 	}
 
 }
