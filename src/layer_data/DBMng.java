@@ -336,7 +336,9 @@ public class DBMng implements DataMng {
 			e.printStackTrace();
 		} finally {
 			try {
-				if ( conn != null) {System.out.println("Connection closed."); conn.close();}
+				if ( conn != null) {
+					//System.out.println("Connection closed."); 
+					conn.close();}
 			} catch ( SQLException e ){
 				System.out.println("Error closing connection to db: "+ e.getMessage() );
 				e.printStackTrace();
@@ -358,10 +360,13 @@ public class DBMng implements DataMng {
 			r = conn.executeUpdate( query );	
 		} catch (SQLException e) {
 			System.out.println("Updated failed: " + e.getMessage());
-			System.out.println( e.getStackTrace() );
+			e.getStackTrace();
 		} finally {
 			try {
-				if ( conn != null) {System.out.println("Connection closed."); conn.close();}
+				if ( conn != null) {
+					//System.out.println("Connection closed."); 
+					conn.close();
+					}
 			} catch ( SQLException e ){
 				System.out.println("Error closing connection to db:  "+ e.getMessage() );
 			}

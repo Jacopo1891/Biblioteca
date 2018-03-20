@@ -18,7 +18,7 @@ public class command_line_view {
 	public command_line_view() {
 		scanner = new Scanner( System.in );
 		my_libr = new Library();
-		my_libr.connectToData( file_xml );
+		my_libr.connectToData("tester", "firenze", "localhost", 1521);
 		my_libr.loadData();
 	}
 	
