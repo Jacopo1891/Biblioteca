@@ -205,7 +205,7 @@ public class XMLMng implements DataMng {
 		return false;
 	}
 
-	public boolean deleteBook(Book b, User u) throws ParserConfigurationException, TransformerException {
+	public boolean deleteBook(Book b, User u) {
 		/**
 		 * Delete a Book, if is not reserved
 		 * @return boolean 
@@ -213,7 +213,16 @@ public class XMLMng implements DataMng {
 		if ( ! u.getRole().equals("Admin")) {
 			throw new AccessControlException("Permission denided. You're not Admin!");
 		}
-		Document doc = readFile( xml_file );
+		Document doc = null;
+		try {
+			doc = readFile( xml_file );
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		NodeList res = searchElementGroup( doc, "Reservation");
 		for ( int i = 0; i< res.getLength(); i++) {
 			Element reservation = (Element) res.item(i);
@@ -227,9 +236,6 @@ public class XMLMng implements DataMng {
 				throw new AccessControlException( err );
 			}
 		}
-				
-			
-
 		return false;
 	}
 	
