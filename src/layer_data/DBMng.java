@@ -213,14 +213,23 @@ public class DBMng implements DataMng {
 		return false;
 	}
 
-	@Override
 	public boolean deleteBook(Book b, User u) throws ParserConfigurationException, TransformerException {
-		// TODO Auto-generated method stub
+		/**
+		 * Delete a Book, if is not reserved
+		 * @return boolean 
+		 */		
+		if ( ! u.getRole().equals("Admin")) {
+			throw new AccessControlException("Permission denided. You're not Admin!");
+		}
+		String check_book = "SELECT * FROM BOOKS WHERE BOOK_ID NOT IN (SELECT R_BOOK_ID FROM RESERVATIONS);";
+		
 		return false;
 	}
 
 	@Override
 	public boolean insertNewBooking(Reservation r) {
+		
+		//String query = 'INSERT INTO RESERVATIONS (R_BOOK_ID, R_USER_ID, START_DATE, END_DATE) VALUES (21,22, TO_DATE("2018-03-20","yyyy-MM-dd"), TO_DATE("2018-04-20","yyyy-MM-dd"))';
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -316,21 +325,13 @@ public class DBMng implements DataMng {
 		 * @return LinkedList of Map obj <Column_name, Value>
 		 */
 		LinkedList<Map<String, Object>> result = new LinkedList<Map<String, Object>>();
-		Map<String, Object> row = null;
 		Statement conn = null;
 		
 		try {
 			conn = connect_to_db();
 			ResultSet r = conn.executeQuery( query );
 			//System.out.println( query );
-			ResultSetMetaData metaData = r.getMetaData();
-			while( r.next() ) {
-				row = new HashMap<String, Object>();
-				for ( int i = 1; i <= metaData.getColumnCount(); i++ ) {
-					row.put(metaData.getColumnName( i ), r.getObject( i ));
-				}
-				result.add( row );
-			}
+			result = statementToList( r );
 		} catch (SQLException e) {
 			//System.out.println("Query failed: " + e.getMessage());
 			e.printStackTrace();
@@ -372,6 +373,28 @@ public class DBMng implements DataMng {
 			}
 		}
 		return ( r < 0 ) ? false : true;
+	}
+	
+	private LinkedList<Map<String, Object>> statementToList ( ResultSet r){
+		
+		LinkedList<Map<String, Object>> result = new LinkedList<Map<String, Object>>();
+
+		try {
+			while( r.next() ) {
+				ResultSetMetaData metaData = r.getMetaData();
+				Map<String, Object> row = null;
+				row = new HashMap<String, Object>();
+				for ( int i = 1; i <= metaData.getColumnCount(); i++ ) {
+					row.put(metaData.getColumnName( i ), r.getObject( i ));
+				}
+				result.add( row );
+			}
+		} catch (SQLException e) {
+			System.out.println("Error parsing ResultSet from DB.");
+			e.printStackTrace();
+		}
+		
+		return result;
 	}
 	
 	public Book createBookFormData( Map<String, Object> element ) {
