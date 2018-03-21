@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.Map;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
-
 import Helpers.EditString;
 import entity.*;
 
@@ -153,20 +152,34 @@ public class DBMng implements DataMng {
 
 	public LinkedList<Book> getBooksAvailable() {
 		/**
-		 * search books inside BOOKS that are not in RESERVATIONS
+		 * Search books inside BOOKS that quantity > number of reservations
 		 * @return list of Book obj
 		 */
-		
-		String query_book_available = "SELECT * FROM BOOKS WHERE BOOK_ID NOT IN (SELECT R_BOOK_ID FROM RESERVATIONS);";
-		LinkedList<Map<String, Object>> book_availables = db_query( query_book_available );
-		LinkedList<Book> result = new LinkedList<Book>();
-		for (int i = 0; i < book_availables.size(); i++ ) {
-			Book temp = createBookFromData( book_availables.get( i ) );
-			result.add( temp );
+		String query_book_available = "SELECT  BOOKS.BOOK_ID," + 
+					" BOOKS.TITLE,"+ 
+					" BOOKS.AUTHOR," + 
+					" BOOKS.PUBLISHER," + 
+					" BOOKS.QUANTITY as TOTAL_QNT," + /* NOT USED BUT MAYBE USEFULL LATER */
+					" BOOKS.QUANTITY - COUNT ( RES.RESERVATION_ID ) as QUANTITY," + 
+					" COUNT ( RES.RESERVATION_ID ) as RESERVED" + 
+					" FROM BOOKS" + 
+					" LEFT JOIN (SELECT * FROM RESERVATIONS WHERE RESERVATIONS.END_DATE >= CURRENT_DATE) RES" +
+					" ON  (BOOKS.BOOK_ID = RES.R_BOOK_ID)" + 
+					" GROUP BY BOOKS.BOOK_ID," + 
+					" BOOKS.TITLE," + 
+					" BOOKS.AUTHOR," + 
+					" BOOKS.PUBLISHER," + 
+					" BOOKS.QUANTITY" + 
+					" HAVING BOOKS.QUANTITY - COUNT ( RES.RESERVATION_ID ) > 0";
+			
+			LinkedList<Map<String, Object>> book_availables = db_query( query_book_available );
+			LinkedList<Book> result = new LinkedList<Book>();
+			for (int i = 0; i < book_availables.size(); i++ ) {
+				Book temp = createBookFromData( book_availables.get( i ) );
+				result.add( temp );
+			}		
+	 		return result;
 		}
-		
- 		return result;
-	}
 
 	public LinkedList<Book> searchBook( String[] param, String[] value ) {
 	/**
@@ -247,7 +260,11 @@ public class DBMng implements DataMng {
 		if ( ! u.getRole().equals("Admin")) {
 			throw new AccessControlException("Permission denided. You're not Admin!");
 		}
-		String query_lent_books = "SELECT * FROM BOOKS JOIN RESERVATIONS ON ( RESERVATIONS.R_BOOK_ID = BOOKS.BOOK_ID ) JOIN USERS ON (RESERVATIONS.R_USER_ID = USERS.USER_ID) WHERE BOOKS.BOOK_ID = "+ b.getBookId();
+		String query_lent_books = "SELECT * FROM BOOKS JOIN RESERVATIONS ON "
+								+ "( RESERVATIONS.R_BOOK_ID = BOOKS.BOOK_ID ) JOIN USERS ON "
+								+ "(RESERVATIONS.R_USER_ID = USERS.USER_ID) "
+								+ "WHERE BOOKS.BOOK_ID = "+ b.getBookId() +" "
+								+ "AND RESERVATIONS.END_DATE <= CURRENT_DATE";
 		LinkedList<Map<String, Object>> result = db_query( query_lent_books );
 		if ( result.isEmpty()  || result.size() < b.getQuantity()) {
 			String query_update = "UPDATE BOOKS SET QUANTITY = QUANTITY - 1 WHERE BOOK_ID = "+ b.getBookId();

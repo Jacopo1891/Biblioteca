@@ -93,5 +93,10 @@ public class Library {
 		return data.updateBook( b, u );
 	}
 	
+	public LinkedList<Book> getBooksAvailable() {
+		
+		return data.getBooksAvailable();
+	}
+	
 	
 }

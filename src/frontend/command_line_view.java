@@ -42,9 +42,10 @@ public class command_line_view {
 		System.out.println("2) Edit book");
 		System.out.println("3) Delete book");
 		System.out.println("4) Update book");
-		System.out.println("5) Create booking");
-		System.out.println("6) Delete booking");
-		System.out.println("7) Exit");
+		System.out.println("5) Show Books availables");
+		System.out.println("6) Create booking");
+		System.out.println("7) Delete booking");
+		System.out.println("8) Exit");
 		System.out.print("Choose what you wanna do: ");
 		int command_to_execute = scanner.nextInt();
 		scanner.nextLine(); // To ignore newline after int choice
@@ -55,7 +56,8 @@ public class command_line_view {
 		
 		System.out.println("1) Create booking");
 		System.out.println("2) Book restitution");
-		System.out.println("3) Exit");
+		System.out.println("3) Show Books availables");
+		System.out.println("4) Exit");
 		System.out.print("Choose what you wanna do: ");
 		int command_to_execute = scanner.nextInt();
 		
@@ -216,6 +218,21 @@ public class command_line_view {
 		
 	}
 	
+	public void getBooksAvailable() {
+		System.out.println("");
+		System.out.println("Book that you can borrow:");
+		LinkedList<Book> books = my_libr.getBooksAvailable();
+		
+		for ( Book b : books ) {
+			System.out.println("Title: " + EditString.Capitalize( b.getTitle() ) );
+			System.out.println("	by " + EditString.Capitalize( b.getAuthor() ) );
+			System.out.println("	Publisher: " + EditString.Capitalize( b.getPublischingHouse() ) );
+			System.out.println("	Number of copy: " + b.getQuantity() );
+		}
+		System.out.println("!--         END        --!");
+		System.out.println(" ");
+	}
+	
 	public static void main(String[] args) {
 
 		command_line_view cmd_library = new command_line_view();
@@ -238,7 +255,9 @@ public class command_line_view {
 						break;
 					case 4: cmd_library.updateBook();
 						break;
-					case 7: work = false; 
+					case 5: cmd_library.getBooksAvailable();
+						break;						
+					case 8: work = false; 
 						break;
 					}
 					
@@ -249,9 +268,11 @@ public class command_line_view {
 					command = cmd_library.command_choice_user ();			
 					
 					switch (command) {
-					case 1: return;
-						//break;
-					case 3: work = false;
+					case 1: work = false;
+						break;
+					case 3: cmd_library.getBooksAvailable();
+						break;
+					case 4: work = false;
 						break;
 						
 					}
@@ -259,5 +280,4 @@ public class command_line_view {
 		}
 		System.out.println("  !- LIBRARY CONSOLE APPLICATION LOGGED OUT -!");
 	}
-
 }
