@@ -41,9 +41,10 @@ public class command_line_view {
 		System.out.println("1) Insert new book");
 		System.out.println("2) Edit book");
 		System.out.println("3) Delete book");
-		System.out.println("4) Create booking");
-		System.out.println("5) Delete booking");
-		System.out.println("6) Exit");
+		System.out.println("4) Update book");
+		System.out.println("5) Create booking");
+		System.out.println("6) Delete booking");
+		System.out.println("7) Exit");
 		System.out.print("Choose what you wanna do: ");
 		int command_to_execute = scanner.nextInt();
 		scanner.nextLine(); // To ignore newline after int choice
@@ -81,9 +82,11 @@ public class command_line_view {
 		}
 	}
 	
-	public String[][] getBookInputData( boolean b){
-		
-		String [] param = {"Title", "Author", "Publisher"};
+	public String[] getBookInputData( boolean b){
+		/**
+		 * Create and array with data of book
+		 * @return String [] = ["_title_","_author_","_publisher_"]
+		 */
 		String [] value = new String[3];
 		
 		System.out.print("Insert book's title: ");
@@ -110,16 +113,14 @@ public class command_line_view {
 			value[2] = scanner.nextLine().replace("\n", "");			
 		}
 		
-		String[][] book_data = new String[][] { value, param};
-		return book_data;
+		return value;
 	}
 	
 	public void insertNewBook() {
 		
 		System.out.println("Create a new book!");
-		String[][] book_values = getBookInputData( true );
-		String [] param = (String[]) book_values[0];
-		String [] value = (String[]) book_values[1];
+		String[] value = getBookInputData( true );
+		String [] param = {"Title", "Author", "Publisher"};
 		boolean result = my_libr.insertNewBook(param, value, logged_user);
 		
 		if ( result ) {
@@ -133,26 +134,7 @@ public class command_line_view {
 		
 		System.out.println("Delete a book!");
 		String [] param = {"Title", "Author", "Publisher"};
-		String [] value = new String[3];
-		
-		System.out.print("Insert book's title: ");
-		value[0] = scanner.nextLine().replace("\n", "");
-		while ( value[0]== null || value[0].isEmpty()) {	
-			System.out.println("Book's title can not be empty!");
-			System.out.print("Insert book's title: ");
-			value[0] = scanner.nextLine().replace("\n", "");			
-		}
-
-		System.out.print("Insert book's author: ");
-		value[1] = scanner.nextLine().replace("\n", "");
-		while ( value[1]== null || value[1].isEmpty() ) {	
-			System.out.println("Book's author can not be empty!");
-			System.out.print("Insert author's title: ");
-			value[1] = scanner.nextLine().replace("\n", "");			
-		}
-
-		System.out.print("Insert book's publisher: ");
-		value[2] = scanner.nextLine().replace("\n", "");			
+		String [] value = getBookInputData( false );			
 		
 		Book book_to_delete = my_libr.searchBook( param, value ).getFirst();
 		boolean result;
@@ -191,7 +173,7 @@ public class command_line_view {
 						break;
 					case 4: cmd_library.updateBook();
 						break;
-					case 6: work = false; 
+					case 7: work = false; 
 						break;
 					}
 					
