@@ -87,6 +87,11 @@ public class Library {
 		
 		return data.searchBook(param, value);
 	}
+
+	public boolean updateBook( Book b, User u ) {
+
+		return data.updateBook( b, u );
+	}
 	
 	
 }

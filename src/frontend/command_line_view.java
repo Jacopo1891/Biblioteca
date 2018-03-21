@@ -82,24 +82,44 @@ public class command_line_view {
 		}
 	}
 	
-	public String[] getBookInputData( boolean b){
+	public String[] getBookInputData( String s){
 		/**
 		 * Create and array with data of book
 		 * @return String [] = ["_title_","_author_","_publisher_"]
 		 */
 		String [] value = new String[3];
+		int command = -1;
 		
-		System.out.print("Insert book's title: ");
-		value[0] = scanner.nextLine().replace("\n", "");
-		while ( value[0]== null || value[0].isEmpty()) {	
-			System.out.println("Book's title can not be empty!");
+		switch ( s ) {
+		case "create": command = 1;
+			break;
+		case "delete": command = 2;
+			break;
+		case "search": command = 3;
+			break;
+		case "update": command = 4; 
+			break;
+		}
+		
+		if ( command != 4 ) {
+			/**
+			 * Title is not editable
+			 */
 			System.out.print("Insert book's title: ");
-			value[0] = scanner.nextLine().replace("\n", "");			
+			value[0] = scanner.nextLine().replace("\n", "");
+			while ( value[0]== null || value[0].isEmpty() ) {	
+				System.out.println("Book's title can not be empty!");
+				System.out.print("Insert book's title: ");
+				value[0] = scanner.nextLine().replace("\n", "");			
+			}
 		}
 
 		System.out.print("Insert book's author: ");
 		value[1] = scanner.nextLine().replace("\n", "");
-		while ( value[1]== null || value[1].isEmpty() ) {	
+		while ( command == 1 && (value[1]== null || value[1].isEmpty() ) ) {
+			/**
+			 * Author required only on creation
+			 */
 			System.out.println("Book's author can not be empty!");
 			System.out.print("Insert author's title: ");
 			value[1] = scanner.nextLine().replace("\n", "");			
@@ -107,10 +127,23 @@ public class command_line_view {
 
 		System.out.print("Insert book's publisher: ");
 		value[2] = scanner.nextLine().replace("\n", "");
-		while ( b && (value[2]== null || value[2].isEmpty() ) ) {	
+		while ( command == 1 && (value[2]== null || value[2].isEmpty() ) ) {
+			/**
+			 * Published required only on creation
+			 */
 			System.out.println("Book's publisher can not be empty!");
 			System.out.print("Insert book's publisher: ");
 			value[2] = scanner.nextLine().replace("\n", "");			
+		}
+		
+		if ( command == 4 ) {
+			/**
+			 * Ask for quantity on update
+			 * -> Instead of title in array[0] save quantity on update
+			 */
+			System.out.print("Insert book's quantity: ");
+			value[0] = scanner.nextLine().replace("\n", "");
+
 		}
 		
 		return value;
@@ -119,7 +152,7 @@ public class command_line_view {
 	public void insertNewBook() {
 		
 		System.out.println("Create a new book!");
-		String[] value = getBookInputData( true );
+		String[] value = getBookInputData( "create" );
 		String [] param = {"Title", "Author", "Publisher"};
 		boolean result = my_libr.insertNewBook(param, value, logged_user);
 		
@@ -134,7 +167,7 @@ public class command_line_view {
 		
 		System.out.println("Delete a book!");
 		String [] param = {"Title", "Author", "Publisher"};
-		String [] value = getBookInputData( false );			
+		String [] value = getBookInputData( "delete" );			
 		
 		Book book_to_delete = my_libr.searchBook( param, value ).getFirst();
 		boolean result;
@@ -148,6 +181,38 @@ public class command_line_view {
 	}
 
 	public void updateBook() {
+		System.out.println("Update a book!");
+		System.out.println("Search a book:");
+		String [] param = {"Title", "Author", "Publisher"};
+		String [] value = getBookInputData( "search" );
+		boolean result;
+		System.out.println("Insert data to update:");
+		Book book_to_update = my_libr.searchBook( param, value ).getFirst();
+		value = getBookInputData( "update" );
+		
+		if ( !value[1].equals("") ) {
+			book_to_update.setAuthor(value[1]);
+		}
+		if ( !value[2].equals("")) {
+			book_to_update.setPublischingHouse(value[2]);
+		}
+		
+		if ( !value[0].equals("")) {
+			try {
+			    int quantity = Integer.parseInt(value[0]);
+			    book_to_update.setQuantity(quantity);
+			}catch(Exception e) {
+			    // If is not int value do not update
+			}
+		}
+		
+		result = my_libr.updateBook( book_to_update, logged_user);
+		
+		if ( result ) {
+			System.out.println("Updated book '" + EditString.Capitalize(book_to_update.getTitle()) + "' by "+ EditString.Capitalize(book_to_update.getAuthor()) +"!");
+		} else {
+			System.out.println("Ooops! Something goes wrong!");
+		}		
 		
 	}
 	

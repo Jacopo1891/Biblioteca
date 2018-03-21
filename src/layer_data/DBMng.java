@@ -137,7 +137,7 @@ public class DBMng implements DataMng {
 			for ( int i = 0; i < param.length ; i++ ) {
 				query_param += ( i == 0)? param[i] : " , " + param[i];
 				
-				query_value += ( i== 0)? "'"+ value[i].toLowerCase() +"'" : ", '"+ value[i].toLowerCase() +"'" ;
+				query_value += ( i == 0)? "'"+ value[i].toLowerCase() +"'" : ", '"+ value[i].toLowerCase() +"'" ;
 			}
 			
 			String query = "INSERT INTO BOOKS (" + query_param +", QUANTITY) VALUES (" + query_value + ", 1)";
@@ -230,9 +230,10 @@ public class DBMng implements DataMng {
 			throw new AccessControlException("Permission denided. You're not Admin!");
 		}
 		String query_update = "UPDATE BOOKS SET "
-				+ "AUTHOR = '" + b.getAuthor() + "'"
-				+ "PUBLISHER ='" + b.getPublischingHouse() + "'"
+				+ "AUTHOR = '" + b.getAuthor() + "', "
+				+ "PUBLISHER ='" + b.getPublischingHouse() + "', "
 				+ "QUANTITY = "+ b.getQuantity() +" WHERE BOOK_ID = "+b.getBookId();
+		//System.out.println( query_update );
 		boolean check = db_query_update( query_update );
 		
 		return check;
@@ -251,7 +252,6 @@ public class DBMng implements DataMng {
 		if ( result.isEmpty()  || result.size() < b.getQuantity()) {
 			String query_update = "UPDATE BOOKS SET QUANTITY = QUANTITY - 1 WHERE BOOK_ID = "+ b.getBookId();
 			boolean res_update = db_query_update( query_update );
-			System.out.print("Esco qua " + res_update);
 			return res_update;
 		}
 		else if ( b.getQuantity() > 0) {
@@ -264,10 +264,8 @@ public class DBMng implements DataMng {
 				Timestamp end_data = (Timestamp) result.get( i ).get( "END_DATE" );
 				error_string += "\n- Copy n°"+ (i + 1) +" to " + EditString.Capitalize( username ) +" from "+  data_format.format( start_data )  + " until " + data_format.format( end_data );
 			}
-			System.out.println( error_string );
 			return false;
 		}
-		System.out.print("Esco qui");
 		return false;
 	}
 
