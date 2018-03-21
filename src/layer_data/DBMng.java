@@ -7,8 +7,6 @@ import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 import Helpers.EditString;
 import entity.*;
 
@@ -18,6 +16,7 @@ public class DBMng implements DataMng {
 	private String pass; 
 	private String host;
 	private int port;
+	private int LinkedList;
 	
 /* ############################
  * ###   GETTERS / SETTERS  ###	
@@ -260,12 +259,7 @@ public class DBMng implements DataMng {
 		if ( ! u.getRole().equals("Admin")) {
 			throw new AccessControlException("Permission denided. You're not Admin!");
 		}
-		String query_lent_books = "SELECT * FROM BOOKS JOIN RESERVATIONS ON "
-								+ "( RESERVATIONS.R_BOOK_ID = BOOKS.BOOK_ID ) JOIN USERS ON "
-								+ "(RESERVATIONS.R_USER_ID = USERS.USER_ID) "
-								+ "WHERE BOOKS.BOOK_ID = "+ b.getBookId() +" "
-								+ "AND RESERVATIONS.END_DATE <= CURRENT_DATE";
-		LinkedList<Map<String, Object>> result = db_query( query_lent_books );
+		LinkedList<Map<String, Object>> result = getActiveBookingBook( b );
 		if ( result.isEmpty()  || result.size() < b.getQuantity()) {
 			String query_update = "UPDATE BOOKS SET QUANTITY = QUANTITY - 1 WHERE BOOK_ID = "+ b.getBookId();
 			boolean res_update = db_query_update( query_update );
@@ -290,7 +284,24 @@ public class DBMng implements DataMng {
 	public boolean insertNewBooking(Reservation r) {
 		
 		//String query = 'INSERT INTO RESERVATIONS (R_BOOK_ID, R_USER_ID, START_DATE, END_DATE) VALUES (21,22, TO_DATE("2018-03-20","yyyy-MM-dd"), TO_DATE("2018-04-20","yyyy-MM-dd"))';
-		// TODO Auto-generated method stub
+		
+		String[] value = new String[] { Integer.toString( r.getBookId() )};
+		Book b = searchBook(new String[]{"BOOK_ID"}, value ).getFirst();
+		
+		LinkedList<Map<String, Object>> result = getActiveBookingBook( b );
+        SimpleDateFormat data_format = new SimpleDateFormat( "yyyy-MM-dd" );
+		if ( result.isEmpty()  || result.size() < b.getQuantity()) {
+			String query_insert = "INSERT INTO RESERVATIONS "
+								+ "(R_BOOK_ID, R_USER_ID, START_DATE, END_DATE) "
+								+ "VALUES "
+								+ "(" + r.getBookId() + ", "
+								+ r.getUserId()+", "
+								+ "TO_DATE('"+ data_format.format( r.getStartDate() ) +"','yyyy-MM-dd'), "
+								+ "TO_DATE('"+ data_format.format(r.getEndDate() ) +"','yyyy-MM-dd'))";
+			System.out.println( query_insert );
+			return db_query_update( query_insert );
+		}
+		//@TODO CASE BOOK IS ALREADY TAKEN 
 		return false;
 	}
 
@@ -344,7 +355,7 @@ public class DBMng implements DataMng {
 		
 	}
 	
-	public void initializeTables(){
+	private void initializeTables(){
 		/**
 		 * Create tables into DB
 		 */
@@ -379,7 +390,7 @@ public class DBMng implements DataMng {
 		
 	}
 	
-	public LinkedList<Map<String, Object>> db_query ( String query ) {
+	private LinkedList<Map<String, Object>> db_query ( String query ) {
 		/**
 		 * Execute a query on DB, Map results
 		 * @return LinkedList of Map obj <Column_name, Value>
@@ -408,7 +419,7 @@ public class DBMng implements DataMng {
 		return result;
 	}
 	
-	public boolean db_query_update ( String query ) {
+	private boolean db_query_update ( String query ) {
 		/**
 		 * Execute a query to update data on DB
 		 * @return true / false
@@ -457,7 +468,7 @@ public class DBMng implements DataMng {
 		return result;
 	}
 	
-	public Book createBookFromData( Map<String, Object> element ) {
+	private Book createBookFromData( Map<String, Object> element ) {
 		/**
 		 * Create a Book obj from DB's data mapped
 		 * @return Book
@@ -471,7 +482,7 @@ public class DBMng implements DataMng {
 		return b;
 	}
 	
-	public User createUserFromData( Map<String, Object> element ) {
+	private User createUserFromData( Map<String, Object> element ) {
 		/**
 		 * Create a User obj from DB's data mapped
 		 * @return User
@@ -482,6 +493,27 @@ public class DBMng implements DataMng {
 		String role = (String) element.get("ROLE");
 		User u = new User(user_id,username, password, role);
 		return u;
+	}
+	
+	private LinkedList<Map<String, Object>> getActiveBookingBook( Book b){
+		/**
+		 * Get active booking's book
+		 * @return list of booking's information mapped:
+		 * [ 	("BOOK_ID" , _value_ ),
+		 * 		... all book info,
+		 * 		("RESERVATION_ID" , _value_ ),
+		 * 		... all reservation info,
+		 * 		("USER_ID" , _value_ ),
+		 * 		... all user info,
+		 * ] 
+		 */
+		String query_lent_books = "SELECT * FROM BOOKS JOIN RESERVATIONS ON "
+				+ "( RESERVATIONS.R_BOOK_ID = BOOKS.BOOK_ID ) JOIN USERS ON "
+				+ "(RESERVATIONS.R_USER_ID = USERS.USER_ID) "
+				+ "WHERE BOOKS.BOOK_ID = "+ b.getBookId() +" "
+				+ "AND RESERVATIONS.END_DATE <= CURRENT_DATE";
+		return  db_query( query_lent_books );
+		
 	}
 
 }

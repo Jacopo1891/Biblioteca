@@ -10,7 +10,7 @@ public class Reservation {
 	@XmlAttribute
 	private int ReservationId;
 	@XmlAttribute
-	private int UserIdr;
+	private int UserId;
 	@XmlAttribute
 	private int BookId;
 	@XmlAttribute
@@ -24,11 +24,11 @@ public class Reservation {
 	public void setReservationId(int id) {
 		this.ReservationId = id;
 	}
-	public int getUserIdr() {
-		return UserIdr;
+	public int getUserId() {
+		return UserId;
 	}
-	public void setUserIdr(int userIdr) {
-		UserIdr = userIdr;
+	public void setUserId(int userId) {
+		UserId = userId;
 	}
 	public int getBookId() {
 		return BookId;
