@@ -1,6 +1,9 @@
 package frontend;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -10,6 +13,7 @@ import javax.xml.transform.TransformerException;
 import Helpers.EditString;
 import business_logic.Library;
 import entity.Book;
+import entity.Reservation;
 import entity.User;
 
 public class command_line_view {
@@ -43,7 +47,7 @@ public class command_line_view {
 		System.out.println("3) Delete book");
 		System.out.println("4) Update book");
 		System.out.println("5) Show Books availables");
-		System.out.println("6) Create booking");
+		System.out.println("6) Rent a book");
 		System.out.println("7) Delete booking");
 		System.out.println("8) Exit");
 		System.out.print("Choose what you wanna do: ");
@@ -54,13 +58,13 @@ public class command_line_view {
 	
 	public int command_choice_user () {
 		
-		System.out.println("1) Create booking");
+		System.out.println("1) Rent a book");
 		System.out.println("2) Book restitution");
 		System.out.println("3) Show Books availables");
 		System.out.println("4) Exit");
 		System.out.print("Choose what you wanna do: ");
 		int command_to_execute = scanner.nextInt();
-		
+		scanner.nextLine(); // To ignore newline after int choice
 		return command_to_execute;
 	}
 	public void login() {
@@ -95,21 +99,22 @@ public class command_line_view {
 		switch ( s ) {
 		case "create": command = 1;
 			break;
-		case "delete": command = 2;
+		case "search": command = 2;
 			break;
-		case "search": command = 3;
-			break;
-		case "update": command = 4; 
+		case "update": command = 3; 
 			break;
 		}
 		
-		if ( command != 4 ) {
+		if ( command != 3 ) {
 			/**
 			 * Title is not editable
 			 */
 			System.out.print("Insert book's title: ");
 			value[0] = scanner.nextLine().replace("\n", "");
-			while ( value[0]== null || value[0].isEmpty() ) {	
+			while ( command == 1 && ( value[0]== null || value[0].isEmpty() ) ) {
+				/**
+				 * Title required only on creation
+				 */
 				System.out.println("Book's title can not be empty!");
 				System.out.print("Insert book's title: ");
 				value[0] = scanner.nextLine().replace("\n", "");			
@@ -138,16 +143,14 @@ public class command_line_view {
 			value[2] = scanner.nextLine().replace("\n", "");			
 		}
 		
-		if ( command == 4 ) {
+		if ( command == 3 ) {
 			/**
 			 * Ask for quantity on update
-			 * -> Instead of title in array[0] save quantity on update
+			 * -> Array[0] save quantity on update instead of title
 			 */
 			System.out.print("Insert book's quantity: ");
 			value[0] = scanner.nextLine().replace("\n", "");
-
 		}
-		
 		return value;
 	}
 	
@@ -167,11 +170,14 @@ public class command_line_view {
 	
 	public void deleteBook() {
 		
-		System.out.println("Delete a book!");
-		String [] param = {"Title", "Author", "Publisher"};
-		String [] value = getBookInputData( "delete" );			
+		System.out.println("Delete a book!");		
+		Book book_to_delete = secureSearchBook("search");
 		
-		Book book_to_delete = my_libr.searchBook( param, value ).getFirst();
+		if ( book_to_delete == null ) {
+			System.out.println("Ooops! Book do not exist!");
+			return;
+		}
+		
 		boolean result;
 		result = my_libr.deleteBook( book_to_delete, logged_user);
 		
@@ -185,12 +191,15 @@ public class command_line_view {
 	public void updateBook() {
 		System.out.println("Update a book!");
 		System.out.println("Search a book:");
-		String [] param = {"Title", "Author", "Publisher"};
-		String [] value = getBookInputData( "search" );
 		boolean result;
+		Book book_to_update = secureSearchBook("search");
+		
+		if ( book_to_update == null ) {
+			System.out.println("Ooops! Book do not exist!");
+			return;
+		}
 		System.out.println("Insert data to update:");
-		Book book_to_update = my_libr.searchBook( param, value ).getFirst();
-		value = getBookInputData( "update" );
+		String [] value = getBookInputData( "update" );
 		
 		if ( !value[1].equals("") ) {
 			book_to_update.setAuthor(value[1]);
@@ -202,9 +211,9 @@ public class command_line_view {
 		if ( !value[0].equals("")) {
 			try {
 			    int quantity = Integer.parseInt(value[0]);
-			    book_to_update.setQuantity(quantity);
+			    book_to_update.setQuantity(book_to_update.getQuantity() + quantity);
 			}catch(Exception e) {
-			    // If is not int value do not update
+			    // If is not int value do not update and do nothing
 			}
 		}
 		
@@ -215,10 +224,12 @@ public class command_line_view {
 		} else {
 			System.out.println("Ooops! Something goes wrong!");
 		}		
-		
 	}
 	
 	public void getBooksAvailable() {
+		/**
+		 * Return all books that are available: not rent or quantity > bookings
+		 */
 		System.out.println("");
 		System.out.println("Book that you can borrow:");
 		LinkedList<Book> books = my_libr.getBooksAvailable();
@@ -231,6 +242,46 @@ public class command_line_view {
 		}
 		System.out.println("!--         END        --!");
 		System.out.println(" ");
+	}
+	
+	public void insertNewBooking() {
+		System.out.println("Rent a book!");
+		System.out.println("Search a book:");
+
+		Book book_to_rent = secureSearchBook("search") ;
+		
+		if ( book_to_rent == null ) {
+			System.out.println("Book found: " + EditString.Capitalize( book_to_rent.getTitle()) +" written by " + EditString.Capitalize( book_to_rent.getAuthor()) );
+			return;
+		}
+		
+		Date date_start = new Date();		// TODAY
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, 1);
+        Date date_end = cal.getTime();		// TODAY + 1 MONTH
+        Reservation r = new Reservation( logged_user.getUserId(), book_to_rent.getBookId(), date_start, date_end);
+        boolean new_booking = my_libr.insertNewBooking( r );
+        
+        if ( new_booking ) {
+        	SimpleDateFormat data_format = new SimpleDateFormat( "dd/MM/yyyy" );
+     		System.out.println("Enjoy your reading " + EditString.Capitalize( logged_user.getUsername() ) + " your rental expires on " + data_format.format( date_end ) );
+        }
+        System.out.println("");
+	}
+	
+	public Book secureSearchBook(String intent){
+		/**
+		 * Check if searched book exists - if exists return the book, else return null
+		 * @return Book
+		 */
+		String [] param = {"Title", "Author", "Publisher"};
+		String [] value = getBookInputData( intent );
+		
+		LinkedList<Book> result = my_libr.searchBook( param, value );
+		if ( result.isEmpty() ) {
+			return null;
+		}
+		return result.getFirst();
 	}
 	
 	public static void main(String[] args) {
@@ -256,7 +307,9 @@ public class command_line_view {
 					case 4: cmd_library.updateBook();
 						break;
 					case 5: cmd_library.getBooksAvailable();
-						break;						
+						break;
+					case 6: cmd_library.insertNewBooking();
+						break;
 					case 8: work = false; 
 						break;
 					}
@@ -268,7 +321,7 @@ public class command_line_view {
 					command = cmd_library.command_choice_user ();			
 					
 					switch (command) {
-					case 1: work = false;
+					case 1: cmd_library.insertNewBooking();
 						break;
 					case 3: cmd_library.getBooksAvailable();
 						break;

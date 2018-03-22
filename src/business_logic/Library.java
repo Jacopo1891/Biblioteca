@@ -98,5 +98,10 @@ public class Library {
 		return data.getBooksAvailable();
 	}
 	
+	public boolean insertNewBooking(Reservation r) {
+		
+		return data.insertNewBooking( r );
+	}
+	
 	
 }

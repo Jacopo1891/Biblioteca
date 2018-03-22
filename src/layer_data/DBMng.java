@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.security.AccessControlException;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -16,7 +17,6 @@ public class DBMng implements DataMng {
 	private String pass; 
 	private String host;
 	private int port;
-	private int LinkedList;
 	
 /* ############################
  * ###   GETTERS / SETTERS  ###	
@@ -282,15 +282,26 @@ public class DBMng implements DataMng {
 
 	@Override
 	public boolean insertNewBooking(Reservation r) {
-		
-		//String query = 'INSERT INTO RESERVATIONS (R_BOOK_ID, R_USER_ID, START_DATE, END_DATE) VALUES (21,22, TO_DATE("2018-03-20","yyyy-MM-dd"), TO_DATE("2018-04-20","yyyy-MM-dd"))';
-		
+		/**
+		 * Insert a new reservation
+		 * @return true / false
+		 */
 		String[] value = new String[] { Integer.toString( r.getBookId() )};
 		Book b = searchBook(new String[]{"BOOK_ID"}, value ).getFirst();
 		
 		LinkedList<Map<String, Object>> result = getActiveBookingBook( b );
         SimpleDateFormat data_format = new SimpleDateFormat( "yyyy-MM-dd" );
-		if ( result.isEmpty()  || result.size() < b.getQuantity()) {
+		Date firstDayFree = new Date();
+        if ( result.isEmpty()  || result.size() < b.getQuantity()) {
+			for ( Map<String, Object> el : result ) {
+				// Check if user already has a reservation with book
+				Reservation temp_r = createReservationFromData( el );
+				if ( temp_r.getBookId() == r.getBookId() && temp_r.getUserId() == r.getUserId() ) {
+					System.out.print("Booking failed! You're already renting this book!");
+					return false;
+				}
+				firstDayFree = ( firstDayFree.before( r.getEndDate() ) ? firstDayFree : r.getEndDate() );
+			}
 			String query_insert = "INSERT INTO RESERVATIONS "
 								+ "(R_BOOK_ID, R_USER_ID, START_DATE, END_DATE) "
 								+ "VALUES "
@@ -298,12 +309,15 @@ public class DBMng implements DataMng {
 								+ r.getUserId()+", "
 								+ "TO_DATE('"+ data_format.format( r.getStartDate() ) +"','yyyy-MM-dd'), "
 								+ "TO_DATE('"+ data_format.format(r.getEndDate() ) +"','yyyy-MM-dd'))";
-			System.out.println( query_insert );
+			//System.out.println( query_insert );
 			return db_query_update( query_insert );
-		}
-		//@TODO CASE BOOK IS ALREADY TAKEN 
+		} else if ( result.size() >= b.getQuantity() ) {
+			data_format = new SimpleDateFormat( "dd/MM/yyyy" );
+			System.out.println("Booking failed! The book: " + EditString.Capitalize( b.getTitle() ) + " will be bookable after " + data_format.format( firstDayFree ));
+		} 
 		return false;
 	}
+
 
 	@Override
 	public boolean deleteBooking(Reservation r) {
@@ -495,11 +509,25 @@ public class DBMng implements DataMng {
 		return u;
 	}
 	
+	private Reservation createReservationFromData( Map<String, Object> element ) {
+		/**
+		 * Create a Reservation obj from DB's data mapped
+		 * @return Reservation
+		 */
+		int reservation_id = ((BigDecimal) element.get("RESERVATION_ID")).intValue();
+		int user_id = ((BigDecimal) element.get("R_USER_ID")).intValue();
+		int book_id = ((BigDecimal) element.get("R_BOOK_ID")).intValue();
+		Date dataStart = new Date( ((Date) element.get("START_DATE")).getTime() );
+		Date dataEnd = new Date( ((Date) element.get("END_DATE")).getTime() );
+		Reservation r = new Reservation( reservation_id, user_id, book_id, dataStart, dataEnd);
+		return r;
+	}
+	
 	private LinkedList<Map<String, Object>> getActiveBookingBook( Book b){
 		/**
 		 * Get active booking's book
 		 * @return list of booking's information mapped:
-		 * [ 	("BOOK_ID" , _value_ ),
+		 * [ 	("BOOK_ID" , b.BOOK_ID ),
 		 * 		... all book info,
 		 * 		("RESERVATION_ID" , _value_ ),
 		 * 		... all reservation info,
@@ -511,7 +539,7 @@ public class DBMng implements DataMng {
 				+ "( RESERVATIONS.R_BOOK_ID = BOOKS.BOOK_ID ) JOIN USERS ON "
 				+ "(RESERVATIONS.R_USER_ID = USERS.USER_ID) "
 				+ "WHERE BOOKS.BOOK_ID = "+ b.getBookId() +" "
-				+ "AND RESERVATIONS.END_DATE <= CURRENT_DATE";
+				+ "AND RESERVATIONS.END_DATE > CURRENT_DATE";
 		return  db_query( query_lent_books );
 		
 	}
