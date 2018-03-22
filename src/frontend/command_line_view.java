@@ -269,6 +269,29 @@ public class command_line_view {
         System.out.println("");
 	}
 	
+	public void deleteBooking() {
+		System.out.println("Return a book!");
+		System.out.println("What book do you want to give back:");		
+		
+		Book book_to_rent = secureSearchBook("search");
+		
+		if( book_to_rent == null) {
+			System.out.println("You have not borrowed this book!");
+			System.out.println("");
+			return;
+		}
+		Reservation reservation_to_delete = secureSearchReservation( book_to_rent, logged_user);
+		
+		boolean del_reservation = my_libr.deleteBooking( reservation_to_delete );
+		
+		if ( del_reservation ) {
+			System.out.println("Book correctly returned! Thanks " + EditString.Capitalize( logged_user.getUsername() ) + "!");
+		} else {
+			System.out.println("Ooops! Something goes wrong!");
+		}
+		System.out.println("");
+	}
+	
 	public Book secureSearchBook(String intent){
 		/**
 		 * Check if searched book exists - if exists return the book, else return null
@@ -282,6 +305,12 @@ public class command_line_view {
 			return null;
 		}
 		return result.getFirst();
+	}
+	
+	public Reservation secureSearchReservation( Book b, User u) {
+	
+		LinkedList<Reservation> reservations = my_libr.searchReservationOfUser( b, u);
+		return reservations.getFirst();
 	}
 	
 	public static void main(String[] args) {

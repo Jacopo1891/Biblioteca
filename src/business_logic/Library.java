@@ -87,6 +87,11 @@ public class Library {
 		
 		return data.searchBook(param, value);
 	}
+	
+	public LinkedList<Reservation> searchReservationOfUser( Book b, User u  ){
+		
+		return data.searchReservationOfUser( b, u);
+	}
 
 	public boolean updateBook( Book b, User u ) {
 
@@ -102,6 +107,11 @@ public class Library {
 		
 		return data.insertNewBooking( r );
 	}
+	
+	public boolean deleteBooking(Reservation r) {
+		
+		return data.deleteBooking( r );
+	}	
 	
 	
 }

@@ -16,6 +16,8 @@ public interface DataMng {
 	public boolean insertNewBooking( Reservation r ) ;
 	public boolean deleteBooking( Reservation r ) ;
 	
+	public LinkedList<Reservation> searchReservationOfUser(Book b, User u);
+	
 	public LinkedList<Book> getBooks();
 	public LinkedList<User> getUsers();
 	public LinkedList<Reservation> getReservations();

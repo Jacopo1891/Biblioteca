@@ -583,6 +583,12 @@ public class XMLMng implements DataMng {
 		
 		return null;		
 	}
+
+	@Override
+	public LinkedList<Reservation> searchReservationOfUser(Book b, User u) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 	
 

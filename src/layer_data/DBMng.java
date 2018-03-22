@@ -185,9 +185,9 @@ public class DBMng implements DataMng {
 	 * search books inside BOOKS using params and values
 	 * @return List of Book obj	
 	 */
-		String query = "SELECT * FROM BOOKS WHERE (";
 		LinkedList<Map<String, Object>> res_query = null;
 		LinkedList<Book> result = new LinkedList<Book>();
+		String query = "SELECT * FROM BOOKS WHERE (";
 		for ( int i = 0; i < param.length ; i++ ) {
 			query += ( i == 0)? "" : " AND ";
 			query += param[i] + " LIKE '%" + value[i].toLowerCase() +"%'";
@@ -259,7 +259,7 @@ public class DBMng implements DataMng {
 		if ( ! u.getRole().equals("Admin")) {
 			throw new AccessControlException("Permission denided. You're not Admin!");
 		}
-		LinkedList<Map<String, Object>> result = getActiveBookingBook( b );
+		LinkedList<Map<String, Object>> result = getActiveBookingBook( b, null );
 		if ( result.isEmpty()  || result.size() < b.getQuantity()) {
 			String query_update = "UPDATE BOOKS SET QUANTITY = QUANTITY - 1 WHERE BOOK_ID = "+ b.getBookId();
 			boolean res_update = db_query_update( query_update );
@@ -289,7 +289,7 @@ public class DBMng implements DataMng {
 		String[] value = new String[] { Integer.toString( r.getBookId() )};
 		Book b = searchBook(new String[]{"BOOK_ID"}, value ).getFirst();
 		
-		LinkedList<Map<String, Object>> result = getActiveBookingBook( b );
+		LinkedList<Map<String, Object>> result = getActiveBookingBook( b, null );
         SimpleDateFormat data_format = new SimpleDateFormat( "yyyy-MM-dd" );
 		Date firstDayFree = new Date();
         if ( result.isEmpty()  || result.size() < b.getQuantity()) {
@@ -321,8 +321,13 @@ public class DBMng implements DataMng {
 
 	@Override
 	public boolean deleteBooking(Reservation r) {
-		// TODO Auto-generated method stub
-		return false;
+		/**
+		 * Update Reservation with current date
+		 * Return true / false
+		 */
+		String query_end_booking = "UPDATE RESERVATIONS SET END_DATE = CURRENT_DATE WHERE RESERVATION_ID = " + r.getReservationId();
+		
+		return db_query_update( query_end_booking );
 	}
 
 	@Override
@@ -523,7 +528,7 @@ public class DBMng implements DataMng {
 		return r;
 	}
 	
-	private LinkedList<Map<String, Object>> getActiveBookingBook( Book b){
+	private LinkedList<Map<String, Object>> getActiveBookingBook( Book b, User u){
 		/**
 		 * Get active booking's book
 		 * @return list of booking's information mapped:
@@ -535,13 +540,34 @@ public class DBMng implements DataMng {
 		 * 		... all user info,
 		 * ] 
 		 */
+		
+		String u_check = ( ! (u == null) ) ? " AND USERS.USER_ID =" + u.getUserId() +" " : " ";
+		
 		String query_lent_books = "SELECT * FROM BOOKS JOIN RESERVATIONS ON "
 				+ "( RESERVATIONS.R_BOOK_ID = BOOKS.BOOK_ID ) JOIN USERS ON "
 				+ "(RESERVATIONS.R_USER_ID = USERS.USER_ID) "
-				+ "WHERE BOOKS.BOOK_ID = "+ b.getBookId() +" "
+				+ "WHERE "
+				+ "BOOKS.BOOK_ID = "+ b.getBookId()
+				+ u_check
 				+ "AND RESERVATIONS.END_DATE > CURRENT_DATE";
 		return  db_query( query_lent_books );
 		
 	}
+	
+	public LinkedList<Reservation> searchReservationOfUser( Book b, User u  ){
+		
+		LinkedList<Map<String, Object>> temp_list = getActiveBookingBook( b, u);
+		LinkedList<Reservation> result = new LinkedList<Reservation>();
+		
+		for( Map<String, Object> el : temp_list ) {
+			
+			Reservation r_temp = createReservationFromData( el );
+			result.add( r_temp );
+		}
+		
+		return result;
+	}
+	
+	
 
 }
