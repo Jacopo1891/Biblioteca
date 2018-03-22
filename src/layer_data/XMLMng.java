@@ -442,7 +442,7 @@ public class XMLMng implements DataMng {
 		
 		reservation_found.setReservationId(resevation_id);
 		reservation_found.setBookId(book_id);
-		reservation_found.setUserIdr(user_id);
+		reservation_found.setUserId(user_id);
 		reservation_found.setStartDate(reservation_data_start);
 		reservation_found.setEndDate(reservation_data_end);
 		
@@ -534,7 +534,7 @@ public class XMLMng implements DataMng {
 				String endDate = date_to_string.format(rt.getEndDate());
 				
 				
-				String [] value = {Integer.toString(rt.getReservationId()),Integer.toString(rt.getBookId()), Integer.toString(rt.getUserIdr()),startDate,endDate };
+				String [] value = {Integer.toString(rt.getReservationId()),Integer.toString(rt.getBookId()), Integer.toString(rt.getUserId()),startDate,endDate };
 				
 				insertElement( doc, "Reservation", param, value);								
 			}

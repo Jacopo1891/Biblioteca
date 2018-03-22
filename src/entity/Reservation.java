@@ -18,6 +18,20 @@ public class Reservation {
 	@XmlAttribute
 	private Date EndDate;
 	
+	public Reservation() {}
+	public Reservation( int user_id, int book_id, Date dataStart, Date dataEnd) {
+		setUserId( user_id );
+		setBookId( book_id );
+		setStartDate( dataStart );
+		setEndDate( dataEnd );
+	}
+	public Reservation(int reservation_id, int user_id, int book_id, Date dataStart, Date dataEnd) {
+		setReservationId( reservation_id );
+		setUserId( user_id );
+		setBookId( book_id );
+		setStartDate( dataStart );
+		setEndDate( dataEnd );
+	}
 	public int getReservationId() {
 		return ReservationId;
 	}
