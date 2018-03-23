@@ -109,37 +109,37 @@ public class command_line_view {
 			/**
 			 * Title is not editable
 			 */
-			System.out.print("Insert book's title: ");
+			System.out.print("	Insert book's title: ");
 			value[0] = scanner.nextLine().replace("\n", "");
 			while ( command == 1 && ( value[0]== null || value[0].isEmpty() ) ) {
 				/**
 				 * Title required only on creation
 				 */
-				System.out.println("Book's title can not be empty!");
-				System.out.print("Insert book's title: ");
+				System.out.println("	Book's title can not be empty!");
+				System.out.print("	Insert book's title: ");
 				value[0] = scanner.nextLine().replace("\n", "");			
 			}
 		}
 
-		System.out.print("Insert book's author: ");
+		System.out.print("	Insert book's author: ");
 		value[1] = scanner.nextLine().replace("\n", "");
 		while ( command == 1 && (value[1]== null || value[1].isEmpty() ) ) {
 			/**
 			 * Author required only on creation
 			 */
-			System.out.println("Book's author can not be empty!");
-			System.out.print("Insert author's title: ");
+			System.out.println("	Book's author can not be empty!");
+			System.out.print("	Insert author's title: ");
 			value[1] = scanner.nextLine().replace("\n", "");			
 		}
 
-		System.out.print("Insert book's publisher: ");
+		System.out.print("	Insert book's publisher: ");
 		value[2] = scanner.nextLine().replace("\n", "");
 		while ( command == 1 && (value[2]== null || value[2].isEmpty() ) ) {
 			/**
 			 * Published required only on creation
 			 */
-			System.out.println("Book's publisher can not be empty!");
-			System.out.print("Insert book's publisher: ");
+			System.out.println("	Book's publisher can not be empty!");
+			System.out.print("	Insert book's publisher: ");
 			value[2] = scanner.nextLine().replace("\n", "");			
 		}
 		
@@ -148,7 +148,7 @@ public class command_line_view {
 			 * Ask for quantity on update
 			 * -> Array[0] save quantity on update instead of title
 			 */
-			System.out.print("Insert book's quantity: ");
+			System.out.print("	Insert book's quantity: ");
 			value[0] = scanner.nextLine().replace("\n", "");
 		}
 		return value;
@@ -235,7 +235,7 @@ public class command_line_view {
 		LinkedList<Book> books = my_libr.getBooksAvailable();
 		
 		for ( Book b : books ) {
-			System.out.println("Title: " + EditString.Capitalize( b.getTitle() ) );
+			System.out.println("Title:	" + EditString.Capitalize( b.getTitle() ) );
 			System.out.println("	by " + EditString.Capitalize( b.getAuthor() ) );
 			System.out.println("	Publisher: " + EditString.Capitalize( b.getPublischingHouse() ) );
 			System.out.println("	Number of copy: " + b.getQuantity() );
@@ -264,35 +264,35 @@ public class command_line_view {
         
         if ( new_booking ) {
         	SimpleDateFormat data_format = new SimpleDateFormat( "dd/MM/yyyy" );
-     		System.out.println("Enjoy your reading " + EditString.Capitalize( logged_user.getUsername() ) + " your rental expires on " + data_format.format( date_end ) );
+     		System.out.println("	Enjoy your reading " + EditString.Capitalize( logged_user.getUsername() ) + "! "
+     				+ " Your rental of " + EditString.Capitalize(book_to_rent.getTitle() ) +" expires on " + data_format.format( date_end ) );
         }
         System.out.println("");
 	}
 	
 	public void deleteBooking() {
 		System.out.println("Return a book!");
-		System.out.println("What book do you want to give back:");		
+		System.out.println("What booking do you want end:");		
 		
-		Book book_to_rent = secureSearchBook("search");
+		Reservation reservation_to_delete = secureSearchReservation( logged_user );
 		
-		if( book_to_rent == null) {
-			System.out.println("You have not borrowed this book!");
+		if ( reservation_to_delete == null) {
+			System.out.println("	You have not reservations!");
 			System.out.println("");
 			return;
 		}
-		Reservation reservation_to_delete = secureSearchReservation( book_to_rent, logged_user);
 		
 		boolean del_reservation = my_libr.deleteBooking( reservation_to_delete );
 		
 		if ( del_reservation ) {
 			System.out.println("Book correctly returned! Thanks " + EditString.Capitalize( logged_user.getUsername() ) + "!");
 		} else {
-			System.out.println("Ooops! Something goes wrong!");
+			System.out.println("	Ooops! Something goes wrong!");
 		}
 		System.out.println("");
 	}
 	
-	public Book secureSearchBook(String intent){
+	private Book secureSearchBook(String intent){
 		/**
 		 * Check if searched book exists - if exists return the book, else return null
 		 * @return Book
@@ -303,14 +303,58 @@ public class command_line_view {
 		LinkedList<Book> result = my_libr.searchBook( param, value );
 		if ( result.isEmpty() ) {
 			return null;
+		} else if ( result.size() == 1 ) {
+			return result.getFirst();
+		} else {
+			return secureSearchBookChoice( result );
 		}
-		return result.getFirst();
 	}
 	
-	public Reservation secureSearchReservation( Book b, User u) {
-	
-		LinkedList<Reservation> reservations = my_libr.searchReservationOfUser( b, u);
-		return reservations.getFirst();
+	private Book secureSearchBookChoice(LinkedList<Book> result) {
+		/**
+		 * 
+		 */
+		int book_selected = 0 ;
+		System.out.println("Choose the right one book: ");
+		for(int i = 0; i < result.size(); i++) {
+			System.out.println("	" + (i + 1) + ") " + EditString.Capitalize(result.get(i).getTitle()) + " by " + EditString.Capitalize(result.get(i).getAuthor()));
+		}
+		System.out.print("Insert choice: ");
+		try {
+			book_selected = scanner.nextInt();
+			scanner.nextLine();
+			return result.get( book_selected - 1 );
+		} catch( Exception e) {
+			System.out.println("");
+			secureSearchBookChoice( result );
+		}
+		return null;
+	}
+
+	private Reservation secureSearchReservation( User u) {
+		System.out.println("Choose which booking do you want to end: ");
+		LinkedList<Reservation> reservations = my_libr.searchReservationOfUser( null, u);
+		int reservation_selected= 0;
+		for(int i = 0; i < reservations.size(); i++) {
+			Reservation r = reservations.get( i );
+			String [] param = {"Book_Id"};
+			String [] value = { Integer.toString( r.getBookId() )};
+			
+			LinkedList<Book> result = my_libr.searchBook( param, value );
+			Book b = result.getFirst();
+			SimpleDateFormat data_format = new SimpleDateFormat( "dd/MM/yyyy" );
+			System.out.println("	" + (i + 1) + ") " + EditString.Capitalize(b.getTitle()) + " expires on " + data_format.format( r.getEndDate() ));
+		}
+		System.out.print("Insert choice: ");
+		try {
+			reservation_selected = scanner.nextInt();
+			scanner.nextLine();
+			return reservations.get( reservation_selected - 1 );
+		} catch( Exception e) {
+			System.out.println("");
+			secureSearchReservation( u );
+		}
+		return null;
 	}
 	
 	public static void main(String[] args) {
@@ -339,6 +383,8 @@ public class command_line_view {
 						break;
 					case 6: cmd_library.insertNewBooking();
 						break;
+					case 7: cmd_library.deleteBooking();
+						break;
 					case 8: work = false; 
 						break;
 					}
@@ -352,6 +398,8 @@ public class command_line_view {
 					switch (command) {
 					case 1: cmd_library.insertNewBooking();
 						break;
+					case 2: cmd_library.deleteBooking();
+					break;						
 					case 3: cmd_library.getBooksAvailable();
 						break;
 					case 4: work = false;

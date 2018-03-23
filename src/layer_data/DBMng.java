@@ -541,15 +541,18 @@ public class DBMng implements DataMng {
 		 * ] 
 		 */
 		
-		String u_check = ( ! (u == null) ) ? " AND USERS.USER_ID =" + u.getUserId() +" " : " ";
+		String b_check = ( ! (b == null) ) ? " BOOKS.BOOK_ID = "+ b.getBookId() +" " : "";
+		String u_check = ( ! (u == null) ) ? " USERS.USER_ID =" + u.getUserId() +" " : "";
+		String and_check = ( !b_check.equals("") && !u_check.equals("") ) ? " AND " : "";
 		
 		String query_lent_books = "SELECT * FROM BOOKS JOIN RESERVATIONS ON "
 				+ "( RESERVATIONS.R_BOOK_ID = BOOKS.BOOK_ID ) JOIN USERS ON "
 				+ "(RESERVATIONS.R_USER_ID = USERS.USER_ID) "
 				+ "WHERE "
-				+ "BOOKS.BOOK_ID = "+ b.getBookId()
+				+ b_check
+				+ and_check
 				+ u_check
-				+ "AND RESERVATIONS.END_DATE > CURRENT_DATE";
+				+ "AND RESERVATIONS.END_DATE >= trunc(sysdate)";
 		return  db_query( query_lent_books );
 		
 	}
