@@ -1,6 +1,6 @@
 package layer_data;
 
-import java.awt.List;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.AccessControlException;
@@ -10,8 +10,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.stream.Stream;
-
-import javax.security.auth.login.FailedLoginException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -25,8 +23,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import entity.*;
@@ -588,6 +584,12 @@ public class XMLMng implements DataMng {
 	public LinkedList<Reservation> searchReservationOfUser(Book b, User u) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public boolean insertNewUser(User u) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 	
 	

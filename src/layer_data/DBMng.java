@@ -96,7 +96,7 @@ public class DBMng implements DataMng {
 		return user_logged;
 	}
 	
-	public boolean insertUser( User u ) {
+	public boolean insertNewUser( User u ) {
 		/**
 		 * Insert new User u inside table USERS
 		 * @return true / false

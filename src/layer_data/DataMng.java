@@ -10,6 +10,7 @@ public interface DataMng {
 	public User checkLoginData( String user, String pass );
 	public LinkedList<Book> getBooksAvailable();
 	public LinkedList<Book> searchBook(String[] param, String[] value);
+	public boolean insertNewUser( User u );
 	public boolean insertNewBook(String[] param, String[] value, User u) ;
 	public boolean updateBook( Book b, User u ) ;
 	public boolean deleteBook( Book b, User u );
