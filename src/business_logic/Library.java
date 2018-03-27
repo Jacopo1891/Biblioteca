@@ -111,7 +111,12 @@ public class Library {
 	public boolean deleteBooking(Reservation r) {
 		
 		return data.deleteBooking( r );
-	}	
+	}
+	
+	public boolean insertNewUser( User u) {
+		
+		return data.insertNewUser( u );
+	}
 	
 	
 }

@@ -40,7 +40,17 @@ public class command_line_view {
 		return logged_user;
 	}
 	
-	public int command_choice_admin () {
+	private int command_choice_start() {
+		System.out.println("1) Log in");
+		System.out.println("2) Create new user");
+		System.out.println("3) Exit");
+		System.out.print("Choose what you wanna do: ");
+		int command_to_execute = scanner.nextInt();
+		scanner.nextLine(); // To ignore newline after int choice
+		return command_to_execute;	
+	}
+	
+	private int command_choice_admin () {
 		
 		System.out.println("1) Insert new book");
 		System.out.println("2) Edit book");
@@ -56,7 +66,7 @@ public class command_line_view {
 		return command_to_execute;
 	}
 	
-	public int command_choice_user () {
+	private int command_choice_user () {
 		
 		System.out.println("1) Rent a book");
 		System.out.println("2) Book restitution");
@@ -87,8 +97,41 @@ public class command_line_view {
 			login();
 		}
 	}
+	private void loggingOut() {
+		System.out.println("");
+		System.out.println("	User " + EditString.Capitalize( getCurrentUser().getUsername() ) + " logged out! Goodbye!");
+		System.out.println("");
+	}
 	
-	public String[] getBookInputData( String s){
+	private void exit() {
+		System.out.println("  !- LIBRARY CONSOLE APPLICATION CLOSED -!");
+	}
+	
+	private boolean createNewUser() {
+		System.out.println("");
+		System.out.println("!-	Get admin autorization	-!");
+		login(); // <- Admin login to authorize creation of new user
+		
+		if ( logged_user == null || !logged_user.getRole().equals("Admin") ) {
+			System.out.println("Not admin access. New user creation failed.");
+			setCurrentUser( null );
+			return false;
+		}
+		System.out.println("");
+		System.out.println("!-	Autorization approved 	-!");
+		setCurrentUser( null ); // Delete current Admin logged in
+		//System.out.println("");
+		
+		System.out.println("Create a new user!");
+		String [] new_user_data = getUserInputData();
+		
+		User u = new User(new_user_data[0], new_user_data[1], new_user_data[2]);
+		// TODO Implement
+		boolean result = my_libr.insertNewUser( u );
+		return result;
+	}
+	
+	private String[] getBookInputData( String s){
 		/**
 		 * Create and array with data of book
 		 * @return String [] = ["_title_","_author_","_publisher_"]
@@ -101,7 +144,7 @@ public class command_line_view {
 			break;
 		case "search": command = 2;
 			break;
-		case "update": command = 3; 
+		case "update": command = 3;
 			break;
 		}
 		
@@ -151,6 +194,48 @@ public class command_line_view {
 			System.out.print("	Insert book's quantity: ");
 			value[0] = scanner.nextLine().replace("\n", "");
 		}
+		return value;
+	}
+	
+	private String [] getUserInputData() {
+		/**
+		 * Get input data to create a new user
+		 */
+		String [] value = new String[3];
+		scanner.nextLine();
+		System.out.print("	Insert username: ");
+		value[0] = scanner.nextLine().replace("\n", "");
+		while ( value[0]== null || value[0].isEmpty() ) {
+			/**
+			 * Username required
+			 */
+			System.out.println("	Username can not be empty!");
+			System.out.print("	Insert username: ");
+			value[0] = scanner.nextLine().replace("\n", "");			
+		}
+
+		System.out.print("	Insert password: ");
+		value[1] = scanner.nextLine().replace("\n", "");
+		while ( value[1]== null || value[1].isEmpty() ) {
+			/**
+			 * password required
+			 */
+			System.out.println("	Password can not be empty!");
+			System.out.print("	Insert password: ");
+			value[1] = scanner.nextLine().replace("\n", "");			
+		}
+		
+		System.out.print("	Insert role: ");
+		value[2] = scanner.nextLine().replace("\n", "");
+		while ( value[2]== null || value[2].isEmpty() ) {
+			/**
+			 * password required
+			 */
+			System.out.println("	Role can not be empty!");
+			System.out.print("	Insert role: ");
+			value[2] = scanner.nextLine().replace("\n", "");			
+		}		
+				
 		return value;
 	}
 	
@@ -250,9 +335,11 @@ public class command_line_view {
 
 		Book book_to_rent = secureSearchBook("search") ;
 		
-		if ( book_to_rent == null ) {
+		if ( book_to_rent != null ) {
 			System.out.println("Book found: " + EditString.Capitalize( book_to_rent.getTitle()) +" written by " + EditString.Capitalize( book_to_rent.getAuthor()) );
-			return;
+		} else {
+			System.out.println("Book not found! Try with diffrent data!");
+			insertNewBooking();
 		}
 		
 		Date date_start = new Date();		// TODAY
@@ -357,6 +444,7 @@ public class command_line_view {
 		return null;
 	}
 	
+	
 	public static void main(String[] args) {
 
 		command_line_view cmd_library = new command_line_view();
@@ -364,16 +452,31 @@ public class command_line_view {
 		boolean work = true;
 		
 		System.out.println("  !-- WELCOME TO LIBRARY CONSOLE APPLICATION --!");
-		
-		cmd_library.login();	// Login before all
-		
+				
 		while ( work ) {
-			if ( cmd_library.getCurrentUser().getRole().equals("Admin") ) {
+			
+			if (cmd_library.getCurrentUser() == null) {
+				command = cmd_library.command_choice_start();
+				switch ( command ){
+				case 1: cmd_library.login();
+					break;
+				case 2: cmd_library.createNewUser();
+					break;
+				case 3: work = false;
+						cmd_library.exit(); 
+					return;	
+				}
+				
+			}
+			
+			if ( cmd_library.getCurrentUser() != null && cmd_library.getCurrentUser().getRole().equals("Admin") ) {
 					
 					command = cmd_library.command_choice_admin ();			
 					
 					switch (command) {
 					case 1: cmd_library.insertNewBook();
+						break;
+					case 2: cmd_library.updateBook();
 						break;
 					case 3: cmd_library.deleteBook();
 						break;
@@ -385,13 +488,13 @@ public class command_line_view {
 						break;
 					case 7: cmd_library.deleteBooking();
 						break;
-					case 8: work = false; 
+					case 8: cmd_library.loggingOut();
+						work = false; 
 						break;
 					}
-					
 				}
 			
-			if ( cmd_library.getCurrentUser().getRole().equals("User") ) {
+			if ( cmd_library.getCurrentUser() != null && cmd_library.getCurrentUser().getRole().equals("User") ) {
 				
 					command = cmd_library.command_choice_user ();			
 					
@@ -402,12 +505,16 @@ public class command_line_view {
 					break;						
 					case 3: cmd_library.getBooksAvailable();
 						break;
-					case 4: work = false;
+					case 4: cmd_library.loggingOut();
+						work = false; 
 						break;
-						
 					}
 			}
+			if( !work) {
+				work = true;
+				cmd_library.setCurrentUser( null );
+			}
 		}
-		System.out.println("  !- LIBRARY CONSOLE APPLICATION LOGGED OUT -!");
+
 	}
 }
