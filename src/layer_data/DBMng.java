@@ -108,8 +108,8 @@ public class DBMng implements DataMng {
 			if ( check.isEmpty() ) {
 				String query_insert = "INSERT INTO USERS (USERNAME, PASSWORD, ROLE)"
 						+ " VALUES ('"+  u.getUsername()  +"', '"+ u.getPassword() +"', '"+ u.getRole() +"')";
-				db_query( query_insert );
-				return true;
+				boolean result = db_query_update( query_insert );
+				return result;
 			} else {
 				throw new SQLException("Failed. Username alraedy exists!");
 			}
