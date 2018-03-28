@@ -8,7 +8,7 @@
 		<Book Author="J.R.R. Tolkien" BookId="2" Publisher="DeAgostini" Quantity="2" Title="Lo Hobbit"/>
 		<Book Author="Collodi" BookId="3" Publisher="Zanichelli" Quantity="1" Title="Pinocchio"/>
 		<Book Author="J.R.R. Tolkien" BookId="4" Publisher="DeAgostini" Quantity="1" Title="Il Signore degli Anelli"/>
-		<Book Author="Eowin Colfer" BookId="5" Publisher="Salani Editori" Quantity="1" Title="Artemis Fowl"/><Book Author="Autore 1" BookId="6" Publisher="Casa Editrice 1" Quantity="1" Title="Titolo 1"/></Books>
+		<Book Author="Eowin Colfer" BookId="5" Publisher="Salani Editori" Quantity="1" Title="Artemis Fowl"/><Book Author="Autore 1" BookId="6" Publisher="Casa Editrice 1" Quantity="1" Title="Titolo 1"/><Book AUTHOR="Autore prova" BookId="7" PUBLISCHER="Publischer prova" Quantity="1" TITLE="Titolo prova"/></Books>
 	<Reservations>
 		<Reservation BookId="2" EndDate="02/04/2018" ReservationId="1" StartDate="02/03/2018" UserId="2"/>
 	</Reservations>
