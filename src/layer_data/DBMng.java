@@ -10,6 +10,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import Helpers.EditString;
 import entity.*;
+import result_manager.*;
 
 public class DBMng implements DataMng {
 
@@ -96,7 +97,7 @@ public class DBMng implements DataMng {
 		return user_logged;
 	}
 	
-	public boolean insertNewUser( User u ) {
+	public IValidationResult insertNewUser( User u ) {
 		/**
 		 * Insert new User u inside table USERS
 		 * @return true / false
@@ -109,14 +110,14 @@ public class DBMng implements DataMng {
 				String query_insert = "INSERT INTO USERS (USERNAME, PASSWORD, ROLE)"
 						+ " VALUES ('"+  u.getUsername()  +"', '"+ u.getPassword() +"', '"+ u.getRole() +"')";
 				boolean result = db_query_update( query_insert );
-				return result;
+				return new ComplexBooleanValue( result );
 			} else {
 				throw new SQLException("Failed. Username alraedy exists!");
 			}
 		} catch (SQLException e) {
-			e.printStackTrace();
-		} 
-		return false;		
+			IValidationResult error_result = new ComplexBooleanValue( e.getMessage() );
+			return error_result;
+		} 		
 	}
 	
 	public boolean insertBook( String[] param, String[] value, User u )  {
@@ -207,9 +208,13 @@ public class DBMng implements DataMng {
 	}
 
 	@Override
-	public boolean insertNewBook(String[] param, String[] value, User u) {
+	public IValidationResult insertNewBook(String[] param, String[] value, User u) {
+		/**
+		 * Insert a new book with params in input
+		 * @return IValidationResult ( true / false + error message )
+		 */
 		if ( ! u.getRole().equals("Admin")) {
-			throw new AccessControlException("Permission denided. You're not Admin!");
+			return new ComplexBooleanValue( "Permission denided. You're not Admin!" );
 		}
 	
 		LinkedList<Book> result = searchBook(param, value);
@@ -222,24 +227,25 @@ public class DBMng implements DataMng {
 				query_value += ( i== 0)? "'"+ value[i].toLowerCase() +"'" : ", '"+ value[i].toLowerCase() +"'" ;
 			}
 			
-			String query = "INSERT INTO BOOKS (" + query_param +", QUANTITY) VALUES (" + query_value + ", 1)";
+			String query_insert = "INSERT INTO BOOKS (" + query_param +", QUANTITY) VALUES (" + query_value + ", 1)";
 			//System.out.println("INSERT: " + query);
-			return db_query_update( query );
+			boolean res_insert = db_query_update( query_insert );
+			return new ComplexBooleanValue( res_insert );
 		} else {
 			Book b_found = result.getFirst();
 			String query_update = "UPDATE BOOKS SET QUANTITY = QUANTITY + 1 WHERE BOOK_ID = "+ b_found.getBookId();
 			boolean res_update = db_query_update( query_update );
-			return res_update;
-		}
+			return new ComplexBooleanValue( res_update );
+			}
 	}
 
-	public boolean updateBook( Book b, User u) {
+	public IValidationResult updateBook( Book b, User u) {
 		/**
 		 * Update a Book with new info 
-		 * @return boolean 
+		 * @return IValidationResult ( true / false + error message ) 
 		 */		
 		if ( ! u.getRole().equals("Admin")) {
-			throw new AccessControlException("Permission denided. You're not Admin!");
+			return new ComplexBooleanValue( "Permission denided. You're not Admin!" );
 		}
 		String query_update = "UPDATE BOOKS SET "
 				+ "AUTHOR = '" + b.getAuthor() + "', "
@@ -248,43 +254,46 @@ public class DBMng implements DataMng {
 		//System.out.println( query_update );
 		boolean check = db_query_update( query_update );
 		
-		return check;
+		return new ComplexBooleanValue( check );
 	}
 
-	public boolean deleteBook(Book b, User u) {
+	public IValidationResult deleteBook(Book b, User u) {
 		/**
 		 * Delete a Book, if is not reserved
-		 * @return boolean 
+		 * @return IValidationResult ( true / false + error message ) 
 		 */		
 		if ( ! u.getRole().equals("Admin")) {
-			throw new AccessControlException("Permission denided. You're not Admin!");
+			return new ComplexBooleanValue( "Permission denided. You're not Admin!" );
 		}
 		LinkedList<Map<String, Object>> result = getActiveBookingBook( b, null );
 		if ( result.isEmpty()  || result.size() < b.getQuantity()) {
-			String query_update = "UPDATE BOOKS SET QUANTITY = QUANTITY - 1 WHERE BOOK_ID = "+ b.getBookId();
-			boolean res_update = db_query_update( query_update );
-			return res_update;
-		}
-		else if ( b.getQuantity() > 0) {
-			String error_string = "Delete denided. Delete blocked because the book '"+ EditString.Capitalize( b.getTitle() )+"' is lend to: ";
-			for (int i = 0; i < result.size(); i++ ) {
-				String username = EditString.Capitalize((String) result.get( i ).get( "USERNAME" ));
-				
-				SimpleDateFormat data_format = new SimpleDateFormat("dd/MM/yyyy");
-				Timestamp start_data = (Timestamp) result.get( i ).get( "START_DATE" );
-				Timestamp end_data = (Timestamp) result.get( i ).get( "END_DATE" );
-				error_string += "\n- Copy n°"+ (i + 1) +" to " + EditString.Capitalize( username ) +" from "+  data_format.format( start_data )  + " until " + data_format.format( end_data );
+			if ( b.getQuantity() > 0) {
+				String query_update = "UPDATE BOOKS SET QUANTITY = QUANTITY - 1 WHERE BOOK_ID = "+ b.getBookId();
+				boolean res_update = db_query_update( query_update );
+				return new ComplexBooleanValue( res_update );
+			} else {
+				return new ComplexBooleanValue( "Book do not exists." );
 			}
-			return false;
 		}
-		return false;
+
+		String error_string = "Delete denided. Delete blocked because the book '"+ EditString.Capitalize( b.getTitle() )+"' is lend to: ";
+		for (int i = 0; i < result.size(); i++ ) {
+			String username = EditString.Capitalize((String) result.get( i ).get( "USERNAME" ));
+			
+			SimpleDateFormat data_format = new SimpleDateFormat("dd/MM/yyyy");
+			Timestamp start_data = (Timestamp) result.get( i ).get( "START_DATE" );
+			Timestamp end_data = (Timestamp) result.get( i ).get( "END_DATE" );
+			error_string += "\n- Copy n°"+ (i + 1) +" to " + EditString.Capitalize( username ) +" from "+  data_format.format( start_data )  + " until " + data_format.format( end_data );
+		}
+		return new ComplexBooleanValue( error_string );
+
 	}
 
 	@Override
-	public boolean insertNewBooking(Reservation r) {
+	public IValidationResult insertNewBooking(Reservation r) {
 		/**
 		 * Insert a new reservation
-		 * @return true / false
+		 * @return IValidationResult ( true / false + error message ) 
 		 */
 		String[] value = new String[] { Integer.toString( r.getBookId() )};
 		Book b = searchBook(new String[]{"BOOK_ID"}, value ).getFirst();
@@ -297,8 +306,8 @@ public class DBMng implements DataMng {
 				// Check if user already has a reservation with book
 				Reservation temp_r = createReservationFromData( el );
 				if ( temp_r.getBookId() == r.getBookId() && temp_r.getUserId() == r.getUserId() ) {
-					System.out.print("Booking failed! You're already renting this book!");
-					return false;
+					String error_booking = "Booking failed! You're already renting this book!";
+					return new ComplexBooleanValue( error_booking );
 				}
 				firstDayFree = ( firstDayFree.before( r.getEndDate() ) ? firstDayFree : r.getEndDate() );
 			}
@@ -310,24 +319,26 @@ public class DBMng implements DataMng {
 								+ "TO_DATE('"+ data_format.format( r.getStartDate() ) +"','yyyy-MM-dd'), "
 								+ "TO_DATE('"+ data_format.format(r.getEndDate() ) +"','yyyy-MM-dd'))";
 			//System.out.println( query_insert );
-			return db_query_update( query_insert );
-		} else if ( result.size() >= b.getQuantity() ) {
-			data_format = new SimpleDateFormat( "dd/MM/yyyy" );
-			System.out.println("Booking failed! The book: " + EditString.Capitalize( b.getTitle() ) + " will be bookable after " + data_format.format( firstDayFree ));
-		} 
-		return false;
+			boolean result_update = db_query_update( query_insert );
+			return new ComplexBooleanValue( result_update );
+		}
+		data_format = new SimpleDateFormat( "dd/MM/yyyy" );
+		String error_booking = "Booking failed! The book: " + EditString.Capitalize( b.getTitle() ) + " will be bookable after " + data_format.format( firstDayFree );
+ 
+		return new ComplexBooleanValue( error_booking );
 	}
 
 
 	@Override
-	public boolean deleteBooking(Reservation r) {
+	public IValidationResult deleteBooking(Reservation r) {
 		/**
 		 * Update Reservation with current date
-		 * Return true / false
+		 * @return IValidationResult ( true / false + error message )
 		 */
 		String query_end_booking = "UPDATE RESERVATIONS SET END_DATE = CURRENT_DATE WHERE RESERVATION_ID = " + r.getReservationId();
 		
-		return db_query_update( query_end_booking );
+		boolean result_delete = db_query_update( query_end_booking );
+		return new ComplexBooleanValue( result_delete );
 	}
 
 	@Override
@@ -552,7 +563,7 @@ public class DBMng implements DataMng {
 				+ b_check
 				+ and_check
 				+ u_check
-				+ "AND RESERVATIONS.END_DATE >= trunc(sysdate)";
+				+ "AND RESERVATIONS.END_DATE > trunc(sysdate)";
 		return  db_query( query_lent_books );
 		
 	}

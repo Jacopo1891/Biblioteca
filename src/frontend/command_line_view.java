@@ -6,15 +6,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.Scanner;
-
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-
-import Helpers.EditString;
+import Helpers.*;
 import business_logic.Library;
-import entity.Book;
-import entity.Reservation;
-import entity.User;
+import entity.*;
+import result_manager.*;
 
 public class command_line_view {
 	
@@ -107,7 +102,7 @@ public class command_line_view {
 		System.out.println("  !- LIBRARY CONSOLE APPLICATION CLOSED -!");
 	}
 	
-	private boolean createNewUser() {
+	private void createNewUser() {
 		System.out.println("");
 		System.out.println("!-	Get admin autorization	-!");
 		login(); // <- Admin login to authorize creation of new user
@@ -115,20 +110,23 @@ public class command_line_view {
 		if ( logged_user == null || !logged_user.getRole().equals("Admin") ) {
 			System.out.println("Not admin access. New user creation failed.");
 			setCurrentUser( null );
-			return false;
+			return;
 		}
 		System.out.println("");
 		System.out.println("!-	Autorization approved 	-!");
 		setCurrentUser( null ); // Delete current Admin logged in
-		//System.out.println("");
 		
 		System.out.println("Create a new user!");
 		String [] new_user_data = getUserInputData();
 		
 		User u = new User(new_user_data[0], new_user_data[1], new_user_data[2]);
-		// TODO Implement
-		boolean result = my_libr.insertNewUser( u );
-		return result;
+
+		IValidationResult result_creation_user = my_libr.insertNewUser( u );
+		if ( result_creation_user.isSuccess() ) {
+			System.out.println("");
+			System.out.println("!-	New account create, login approved! 	-!");
+			System.out.println("");
+		}
 	}
 	
 	private String[] getBookInputData( String s){
@@ -244,12 +242,12 @@ public class command_line_view {
 		System.out.println("Create a new book!");
 		String[] value = getBookInputData( "create" );
 		String [] param = {"Title", "Author", "Publisher"};
-		boolean result = my_libr.insertNewBook(param, value, logged_user);
+		IValidationResult result = my_libr.insertNewBook(param, value, logged_user);
 		
-		if ( result ) {
+		if ( result.isSuccess() ) {
 			System.out.println("New book '" + value[0] + "' by "+ value[1] +" saved!");
 		} else {
-			System.out.println("Ooops! Something goes wrong!");
+			System.out.println( result.getMessage() );
 		}
 	}
 	
@@ -263,20 +261,20 @@ public class command_line_view {
 			return;
 		}
 		
-		boolean result;
+		IValidationResult result;
 		result = my_libr.deleteBook( book_to_delete, logged_user);
 		
-		if ( result ) {
+		if ( result.isSuccess() ) {
 			System.out.println("Deleted book '" + EditString.Capitalize(book_to_delete.getTitle()) + "' by "+ EditString.Capitalize(book_to_delete.getAuthor()) +"!");
 		} else {
-			System.out.println("Ooops! Something goes wrong!");
+			System.out.println( result.getMessage() );
 		}
 	}
 
 	public void updateBook() {
 		System.out.println("Update a book!");
 		System.out.println("Search a book:");
-		boolean result;
+		IValidationResult result;
 		Book book_to_update = secureSearchBook("search");
 		
 		if ( book_to_update == null ) {
@@ -304,10 +302,10 @@ public class command_line_view {
 		
 		result = my_libr.updateBook( book_to_update, logged_user);
 		
-		if ( result ) {
+		if ( result.isSuccess() ) {
 			System.out.println("Updated book '" + EditString.Capitalize(book_to_update.getTitle()) + "' by "+ EditString.Capitalize(book_to_update.getAuthor()) +"!");
 		} else {
-			System.out.println("Ooops! Something goes wrong!");
+			System.out.println( result.getMessage() );
 		}		
 	}
 	
@@ -347,12 +345,14 @@ public class command_line_view {
         cal.add(Calendar.MONTH, 1);
         Date date_end = cal.getTime();		// TODAY + 1 MONTH
         Reservation r = new Reservation( logged_user.getUserId(), book_to_rent.getBookId(), date_start, date_end);
-        boolean new_booking = my_libr.insertNewBooking( r );
+        IValidationResult new_booking = my_libr.insertNewBooking( r );
         
-        if ( new_booking ) {
+        if ( new_booking.isSuccess() ) {
         	SimpleDateFormat data_format = new SimpleDateFormat( "dd/MM/yyyy" );
      		System.out.println("	Enjoy your reading " + EditString.Capitalize( logged_user.getUsername() ) + "! "
      				+ " Your rental of " + EditString.Capitalize(book_to_rent.getTitle() ) +" expires on " + data_format.format( date_end ) );
+        } else {
+        	System.out.println( new_booking.getMessage() );
         }
         System.out.println("");
 	}
@@ -369,12 +369,12 @@ public class command_line_view {
 			return;
 		}
 		
-		boolean del_reservation = my_libr.deleteBooking( reservation_to_delete );
+		IValidationResult del_reservation = my_libr.deleteBooking( reservation_to_delete );
 		
-		if ( del_reservation ) {
+		if ( del_reservation.isSuccess() ) {
 			System.out.println("Book correctly returned! Thanks " + EditString.Capitalize( logged_user.getUsername() ) + "!");
 		} else {
-			System.out.println("	Ooops! Something goes wrong!");
+			System.out.println("	" + del_reservation.getMessage());
 		}
 		System.out.println("");
 	}

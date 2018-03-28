@@ -2,11 +2,11 @@ package business_logic;
 import java.util.LinkedList;
 import entity.*;
 import layer_data.*;
+import result_manager.*;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 
 @XmlRootElement
 public class Library {
@@ -73,12 +73,12 @@ public class Library {
 		setReservations( data.getReservations() );
 	}
 	
-	public boolean insertNewBook ( String[] param, String[] value, User u ) {
+	public IValidationResult insertNewBook ( String[] param, String[] value, User u ) {
 				
 		return data.insertNewBook(param, value, u);
 	}
 	
-	public boolean deleteBook ( Book b, User u ) {
+	public IValidationResult deleteBook ( Book b, User u ) {
 		
 		return data.deleteBook( b, u );
 	}
@@ -93,7 +93,7 @@ public class Library {
 		return data.searchReservationOfUser( b, u);
 	}
 
-	public boolean updateBook( Book b, User u ) {
+	public IValidationResult updateBook( Book b, User u ) {
 
 		return data.updateBook( b, u );
 	}
@@ -103,17 +103,17 @@ public class Library {
 		return data.getBooksAvailable();
 	}
 	
-	public boolean insertNewBooking(Reservation r) {
+	public IValidationResult insertNewBooking(Reservation r) {
 		
 		return data.insertNewBooking( r );
 	}
 	
-	public boolean deleteBooking(Reservation r) {
+	public IValidationResult deleteBooking(Reservation r) {
 		
 		return data.deleteBooking( r );
 	}
 	
-	public boolean insertNewUser( User u) {
+	public IValidationResult insertNewUser( User u) {
 		
 		return data.insertNewUser( u );
 	}

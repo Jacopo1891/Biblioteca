@@ -26,6 +26,8 @@ import org.xml.sax.SAXException;
 import java.util.Arrays;
 
 import entity.*;
+import result_manager.ComplexBooleanValue;
+import result_manager.IValidationResult;
 
 public class XMLMng implements DataMng {
 	
@@ -111,24 +113,24 @@ public class XMLMng implements DataMng {
 			return result;
 		}
 
-	public boolean insertNewBooking(Reservation r) {
+	public IValidationResult insertNewBooking(Reservation r) {
 		// TODO Auto-generated method stub
-		return false;
+		return new ComplexBooleanValue( "TODO" );
 	}
 
-	public boolean deleteBooking(Reservation r) {
+	public IValidationResult deleteBooking(Reservation r) {
 		// TODO Auto-generated method stub
-		return false;
+		return new ComplexBooleanValue( "TODO" );
 	}
 
-	public boolean insertNewBook(String[] param, String[] value, User u) {
+	public IValidationResult insertNewBook(String[] param, String[] value, User u) {
 		/**
 		 * Insert a new Book, if already exists update stat ( quantity + 1)
 		 * @return boolean 
 		 */		
 		try {
 			if ( ! u.getRole().equals("Admin")) {
-				throw new AccessControlException("Permission denided. You're not Admin!");
+				return new ComplexBooleanValue( "Premission error! You're not an admin!" );
 			}
 			Document doc = readFile( xml_file );
 			LinkedList<Book> temp_b = searchBook(param, value);
@@ -144,7 +146,7 @@ public class XMLMng implements DataMng {
 				
 				doc = insertElement( doc, "Book", param, value);
 				writeFile( doc, xml_file );
-				return true;
+				return new ComplexBooleanValue( true );
 			} else if( !temp_b.isEmpty() && temp_b.size() <= 1) {
 				Book book_temp = temp_b.getFirst();
 				book_temp.setQuantity( book_temp.getQuantity() + 1 );
@@ -152,7 +154,8 @@ public class XMLMng implements DataMng {
 			}
 			
 		} catch ( AccessControlException e) {
-			return false;
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -160,17 +163,17 @@ public class XMLMng implements DataMng {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return false;
+		return new ComplexBooleanValue( true );
 	}
 
-	public boolean updateBook(Book b, User u) {
+	public IValidationResult updateBook(Book b, User u) {
 		/**
 		 * Update data of Book
 		 * @return boolean 
 		 */		
 		try {
 			if ( ! u.getRole().equals("Admin")) {
-				throw new AccessControlException("Permission denided. You're not Admin!");
+				return new ComplexBooleanValue( "Premission error! You're not an admin!" );
 			}
 			Document doc = readFile( xml_file );
 			NodeList books = searchElementGroup( doc, "Book" );
@@ -184,13 +187,13 @@ public class XMLMng implements DataMng {
 					book.setAttribute("Publisher", b.getPublischingHouse());
 					book.setAttribute("Quantity", Integer.toString(b.getQuantity()) );
 					writeFile( doc, xml_file );
-					return true;
+					return new ComplexBooleanValue( true );
 				}
 				
 			}
 			
 		} catch ( AccessControlException e) {
-			return false;
+			return new ComplexBooleanValue( "Can not access to file." );
 		} catch (ParserConfigurationException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -198,16 +201,16 @@ public class XMLMng implements DataMng {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return false;
+		return new ComplexBooleanValue( false );
 	}
 
-	public boolean deleteBook(Book b, User u) {
+	public IValidationResult deleteBook(Book b, User u) {
 		/**
 		 * Delete a Book, if is not reserved
 		 * @return boolean 
 		 */		
 		if ( ! u.getRole().equals("Admin")) {
-			throw new AccessControlException("Permission denided. You're not Admin!");
+			return new ComplexBooleanValue( "Permission denided. You're not Admin!" );
 		}
 		Document doc = null;
 		try {
@@ -229,10 +232,11 @@ public class XMLMng implements DataMng {
 				User user_block = getUserById ( doc, user_id_block );
 				err += "Book '" + b.getTitle() + "is reserved by " + user_block.getUsername();
 				err += "from " + reservation.getAttribute("StartDate") + " to " + reservation.getAttribute("EndDate");
-				throw new AccessControlException( err );
+				return new ComplexBooleanValue( err );
 			}
 		}
-		return false;
+		// TODO
+		return new ComplexBooleanValue( "TODO" );
 	}
 	
 	public Document readFile( String pathFile ) throws ParserConfigurationException, TransformerException {
@@ -587,9 +591,9 @@ public class XMLMng implements DataMng {
 	}
 
 	@Override
-	public boolean insertNewUser(User u) {
+	public IValidationResult insertNewUser(User u) {
 		// TODO Auto-generated method stub
-		return false;
+		return new ComplexBooleanValue( false );
 	}
 	
 	
