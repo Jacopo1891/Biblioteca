@@ -2,20 +2,20 @@ package entity;
 
 import java.util.Date;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+//import javax.xml.bind.annotation.XmlAttribute;
+//import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement
+//@XmlRootElement
 public class Reservation {
-	@XmlAttribute
+	//@XmlAttribute
 	private int ReservationId;
-	@XmlAttribute
+	//@XmlAttribute
 	private int UserId;
-	@XmlAttribute
+	//@XmlAttribute
 	private int BookId;
-	@XmlAttribute
+	//@XmlAttribute
 	private Date StartDate;
-	@XmlAttribute
+	//@XmlAttribute
 	private Date EndDate;
 	
 	public Reservation() {}

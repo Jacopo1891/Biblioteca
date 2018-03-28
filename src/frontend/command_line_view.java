@@ -444,7 +444,7 @@ public class command_line_view {
 		return null;
 	}
 	
-	
+	/*
 	public static void main(String[] args) {
 
 		command_line_view cmd_library = new command_line_view();
@@ -515,6 +515,6 @@ public class command_line_view {
 				cmd_library.setCurrentUser( null );
 			}
 		}
-
 	}
+	*/
 }
