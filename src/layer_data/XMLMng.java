@@ -4,6 +4,7 @@ package layer_data;
 import java.io.File;
 import java.io.IOException;
 import java.security.AccessControlException;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,6 +24,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+
+import Helpers.EditString;
+
 import java.util.Arrays;
 
 import entity.*;
@@ -131,8 +135,42 @@ public class XMLMng implements DataMng {
 		}
 
 	public IValidationResult insertNewBooking(Reservation r) {
-		// TODO Auto-generated method stub
-		return new ComplexBooleanValue( "TODO" );
+		/**
+		 * Insert a new Reservation
+		 * @return IValidationResult true / false + message 
+		 */		
+		try {
+			Document doc = readFile( xml_file );
+			SimpleDateFormat data_format = new SimpleDateFormat("dd/MM/yyyy");
+			int new_id = getNewIdReservation();
+			String [] param = {	"ReservationId",
+								"BookId",
+								"UserId",
+								"StartDate",
+								"EndDate"};
+
+			String [] value = {	String.valueOf( new_id ),
+								String.valueOf( r.getBookId() ),
+								String.valueOf( r.getUserId() ),
+								data_format.format( r.getStartDate() ),
+								data_format.format( r.getEndDate() )
+								};
+			
+			doc = insertElement( doc, "Reservation", param, value);
+			writeFile( doc, xml_file );
+			return new ComplexBooleanValue( true );
+			
+		} catch ( AccessControlException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new ComplexBooleanValue( "Something goes wrong!" );
 	}
 
 	public IValidationResult deleteBooking(Reservation r) {
@@ -143,7 +181,7 @@ public class XMLMng implements DataMng {
 	public IValidationResult insertNewBook(String[] param, String[] value, User u) {
 		/**
 		 * Insert a new Book, if already exists update stat ( quantity + 1)
-		 * @return boolean 
+		 * @return IValidationResult true / false + message 
 		 */		
 		try {
 			if ( ! u.getRole().equals("Admin")) {
@@ -206,9 +244,7 @@ public class XMLMng implements DataMng {
 					writeFile( doc, xml_file );
 					return new ComplexBooleanValue( true );
 				}
-				
-			}
-			
+			}	
 		} catch ( AccessControlException e) {
 			return new ComplexBooleanValue( "Can not access to file." );
 		} catch (ParserConfigurationException e) {
@@ -239,21 +275,24 @@ public class XMLMng implements DataMng {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		NodeList res = searchElementGroup( doc, "Reservation");
-		for ( int i = 0; i< res.getLength(); i++) {
-			Element reservation = (Element) res.item(i);
-			int id_book_to_delete = Integer.parseInt( reservation.getAttribute("BookId") );
-			if ( id_book_to_delete == b.getBookId()) {
-				String err = "Action delete denided.";
-				int user_id_block = Integer.parseInt( reservation.getAttribute("UserId") );
+		LinkedList<Reservation> reservation_book = getActiveReservation(b, null);
+		if ( reservation_book.size() >= b.getQuantity() ) {
+			String err = "Action delete denided.";
+			for( int i = 0; i< reservation_book.size(); i++ ) {
+				int user_id_block =  reservation_book.get( i ).getUserId();
+				SimpleDateFormat data_format = new SimpleDateFormat("dd/MM/yyyy");
 				User user_block = getUserById ( doc, user_id_block );
-				err += "Book '" + b.getTitle() + "is reserved by " + user_block.getUsername();
-				err += "from " + reservation.getAttribute("StartDate") + " to " + reservation.getAttribute("EndDate");
-				return new ComplexBooleanValue( err );
+				err += "Book '" + EditString.Capitalize( b.getTitle() ) + "is reserved by " + EditString.Capitalize( user_block.getUsername() );
+				err += "from " + data_format.format( reservation_book.get( i ).getStartDate() ) + " to " + data_format.format( reservation_book.get( i ).getEndDate() );
 			}
+			return new ComplexBooleanValue( err );	
 		}
-		// TODO
-		return new ComplexBooleanValue( "TODO" );
+		int new_quantity = b.getQuantity() - 1;
+		if ( new_quantity <= 0 ) {
+			return new ComplexBooleanValue("Book do not exists.");
+		}
+		b.setQuantity( new_quantity );
+		return updateBook( b, u );
 	}
 	
 	private LinkedList<Reservation> getActiveReservation( Book b, User u ) {
@@ -616,8 +655,51 @@ public class XMLMng implements DataMng {
 		return id_max + 1;
 	}
 	
+	private int getNewIdReservation() {
+		int id_max = 0;
+		try {
+			Document doc = readFile( xml_file );
+			NodeList reservations_list = searchElementGroup( doc, "Reservation");
+			for (int i = 0; i < reservations_list.getLength(); i++ ) {
+				String reservation_id =  ((Element)reservations_list.item( i )).getAttribute("ReservationId");
+				if ( id_max < Integer.parseInt(reservation_id)) {
+					id_max =  Integer.parseInt(reservation_id);
+				}
+			}			
+			
+		} catch (ParserConfigurationException | TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return id_max + 1;
+	}
+	
+	private int getNewIdUser() {
+		int id_max = 0;
+		try {
+			Document doc = readFile(xml_file);
+			NodeList users_list = searchElementGroup(doc, "User");
+			for (int i = 0; i < users_list.getLength(); i++) {
+				String user_id = ((Element) users_list.item(i)).getAttribute("UserId");
+				System.out.println(
+						"id: " + user_id + " username: " + ((Element) users_list.item(i)).getAttribute("Username"));
+				if (id_max < Integer.parseInt(user_id)) {
+					id_max = Integer.parseInt(user_id);
+				}
+			}
+
+		} catch (ParserConfigurationException | TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return id_max + 1;
+	}
+	
 	private User getUserById ( Document doc, int id) {
-		
+		/**
+		 * Serch user by id
+		 * @return User
+		 */
 		User u = null;
 		NodeList users = searchElementGroup ( doc, "User" ); 
 		for (int i = 0; i < users.getLength(); i++ ) {
@@ -635,10 +717,77 @@ public class XMLMng implements DataMng {
 		return null;
 	}
 
+	private LinkedList<User> searchUser(String[] param, String[] value) {
+		/**
+		 * Looks for a User
+		 * @return LinkedList of user
+		 */
+		Document doc;
+		LinkedList<User> result = new LinkedList<User>();
+		try {
+			doc = readFile(xml_file);
+			doc.getDocumentElement().normalize();
+			NodeList users = searchElementGroup(doc, "User");
+			for (int i = 0; i < users.getLength(); i++) {
+				Element user_list = (Element) users.item(i);
+				boolean found = true;
+				for (int j = 0; j < param.length; j++) {
+					String temp_param = param[j];
+					String temp_value = value[j];
+
+					if (!user_list.getAttribute( temp_param ).equals( temp_value )) {
+						found = false;
+						break;
+					}
+				}
+				if (found) {
+					User user_found = createUserFromData( user_list );
+					result.add( user_found );
+				}
+			}
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+
 	@Override
 	public IValidationResult insertNewUser(User u) {
-		// TODO Auto-generated method stub
-		return new ComplexBooleanValue( false );
+		/**
+		 * Insert new user
+		 * @return IValidationResult true / false + message
+		 */
+		try {
+			Document doc = readFile(xml_file);
+
+			String[] param = { "Username" };
+			String[] value = { u.getUsername() };
+
+			LinkedList<User> temp_user = searchUser(param, value);
+
+			if (temp_user.isEmpty()) {
+
+				int new_id = getNewIdUser();
+
+				String[] new_param = { "Password", "Role", "UserId", "Username" };
+				String[] new_value = { u.getPassword(), u.getRole(), String.valueOf(new_id), u.getUsername() };
+
+				doc = insertElement(doc, "User", new_param, new_value);
+				writeFile(doc, xml_file);
+				return new ComplexBooleanValue(true);
+			} else if (!temp_user.isEmpty()) {
+				return new ComplexBooleanValue("Creation new user failed. Username already exists!");
+			}
+
+		} catch (ParserConfigurationException | TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new ComplexBooleanValue(true);
 	}
 	
 	
