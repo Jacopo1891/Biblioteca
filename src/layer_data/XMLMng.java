@@ -4,7 +4,6 @@ package layer_data;
 import java.io.File;
 import java.io.IOException;
 import java.security.AccessControlException;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,10 +62,10 @@ public class XMLMng implements DataMng {
 			}
 
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return user_logged;
@@ -88,7 +87,7 @@ public class XMLMng implements DataMng {
 				}
 			}
 		} catch (ParserConfigurationException | TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return books_available;
@@ -125,10 +124,10 @@ public class XMLMng implements DataMng {
 				}
 				
 			} catch (ParserConfigurationException e) {
-				// TODO Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			} catch (TransformerException e) {
-				// TODO Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			}
 			return result;
@@ -161,21 +160,42 @@ public class XMLMng implements DataMng {
 			return new ComplexBooleanValue( true );
 			
 		} catch ( AccessControlException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new ComplexBooleanValue( "Something goes wrong!" );
 	}
 
 	public IValidationResult deleteBooking(Reservation r) {
-		// TODO Auto-generated method stub
-		return new ComplexBooleanValue( "TODO" );
+		/**
+		 * Delete reservation setting EndDat = today
+		 * @return IValidationResult true / false + message
+		 */
+		try {
+			Document doc = readFile( xml_file );
+			NodeList reservations_list = searchElementGroup( doc, "Reservation");
+			SimpleDateFormat data_format = new SimpleDateFormat("dd/MM/yyyy");
+			for(int i = 0; i < reservations_list.getLength(); i++) {
+				Element reservation_found = (Element) reservations_list.item(i);
+				if ( r.getReservationId() == Integer.parseInt( reservation_found.getAttribute( "ReservationId" )) ){
+					
+					reservation_found.setAttribute("EndDate", data_format.format( new Date()) );
+					writeFile( doc, xml_file );
+					return new ComplexBooleanValue( true );
+				}
+			}
+			
+		} catch (ParserConfigurationException | TransformerException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+		return new ComplexBooleanValue( "Reservation not found!" );
 	}
 
 	public IValidationResult insertNewBook(String[] param, String[] value, User u) {
@@ -209,13 +229,13 @@ public class XMLMng implements DataMng {
 			}
 			
 		} catch ( AccessControlException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new ComplexBooleanValue( true );
@@ -235,7 +255,7 @@ public class XMLMng implements DataMng {
 			for(int i = 0; i < books.getLength(); i++) {
 				Element book = (Element) books.item(i);
 				
-				if ( b.getBookId() == Integer.parseInt(book.getAttribute( "BookId" )) );{
+				if ( b.getBookId() == Integer.parseInt(book.getAttribute( "BookId" )) ){
 					
 					book.setAttribute("Title", b.getTitle());
 					book.setAttribute("Author", b.getAuthor());
@@ -248,10 +268,10 @@ public class XMLMng implements DataMng {
 		} catch ( AccessControlException e) {
 			return new ComplexBooleanValue( "Can not access to file." );
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new ComplexBooleanValue( false );
@@ -269,10 +289,10 @@ public class XMLMng implements DataMng {
 		try {
 			doc = readFile( xml_file );
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		LinkedList<Reservation> reservation_book = getActiveReservation(b, null);
@@ -312,13 +332,13 @@ public class XMLMng implements DataMng {
 				}
 			}
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (ParseException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;
@@ -340,7 +360,7 @@ public class XMLMng implements DataMng {
 				xmlBuilder = xmlFactory.newDocumentBuilder();
 				doc = xmlBuilder.parse( pathFile );
 			} catch (ParserConfigurationException | SAXException | IOException e) {
-				// TODO Auto-generated catch block
+				// Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -398,16 +418,12 @@ public class XMLMng implements DataMng {
 		try {
 			transformer = transformerFactory.newTransformer();
 		} catch (TransformerConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		//System.out.println(pathFile);
 		DOMSource source = new DOMSource(doc);	
 		StreamResult result = new StreamResult(new File(pathFile));
-
-		// Output to console for testing
-		// StreamResult result = new StreamResult(System.out);
 
 		transformer.transform(source, result);
 
@@ -420,8 +436,6 @@ public class XMLMng implements DataMng {
 		 * @return NodeList with that tag 
 		 */
 		NodeList list = d.getElementsByTagName( type );
-
-		//d.getDocumentElement().normalize();
 		
 		return list;
 	}
@@ -546,7 +560,7 @@ public class XMLMng implements DataMng {
 			}			
 			
 		} catch (ParserConfigurationException | TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return books;
@@ -563,7 +577,7 @@ public class XMLMng implements DataMng {
 			}			
 			
 		} catch (ParserConfigurationException | TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return users;
@@ -580,7 +594,7 @@ public class XMLMng implements DataMng {
 			}			
 			
 		} catch (ParserConfigurationException | TransformerException | ParseException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return reservations;
@@ -627,10 +641,10 @@ public class XMLMng implements DataMng {
 			writeFile( doc, xml_file );
 			
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -649,7 +663,7 @@ public class XMLMng implements DataMng {
 			}			
 			
 		} catch (ParserConfigurationException | TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return id_max + 1;
@@ -668,7 +682,7 @@ public class XMLMng implements DataMng {
 			}			
 			
 		} catch (ParserConfigurationException | TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return id_max + 1;
@@ -689,7 +703,7 @@ public class XMLMng implements DataMng {
 			}
 
 		} catch (ParserConfigurationException | TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return id_max + 1;
@@ -713,7 +727,7 @@ public class XMLMng implements DataMng {
 
 	@Override
 	public LinkedList<Reservation> searchReservationOfUser(Book b, User u) {
-		// TODO Auto-generated method stub
+		// TODO @Andrea
 		return null;
 	}
 
@@ -746,10 +760,10 @@ public class XMLMng implements DataMng {
 				}
 			}
 		} catch (ParserConfigurationException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		} catch (TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;
@@ -784,7 +798,7 @@ public class XMLMng implements DataMng {
 			}
 
 		} catch (ParserConfigurationException | TransformerException e) {
-			// TODO Auto-generated catch block
+			// Auto-generated catch block
 			e.printStackTrace();
 		}
 		return new ComplexBooleanValue(true);

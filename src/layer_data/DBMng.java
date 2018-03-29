@@ -343,19 +343,19 @@ public class DBMng implements DataMng {
 
 	@Override
 	public LinkedList<Book> getBooks() {
-		// TODO Auto-generated method stub
+		// Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public LinkedList<User> getUsers() {
-		// TODO Auto-generated method stub
+		// Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public LinkedList<Reservation> getReservations() {
-		// TODO Auto-generated method stub
+		// Auto-generated method stub
 		return null;
 	}
 
@@ -385,6 +385,7 @@ public class DBMng implements DataMng {
 		
 	}
 	
+	@SuppressWarnings("unused")
 	private void initializeTables(){
 		/**
 		 * Create tables into DB
