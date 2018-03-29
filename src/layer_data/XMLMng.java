@@ -40,7 +40,7 @@ public class XMLMng implements DataMng {
 	public User checkLoginData(String user, String pass) {
 	/**
 	 * Check if login data are correct
-	 * @return True / False
+	 * @return User / Null
 	 */	
 		Document doc;
 		User user_logged = null;
@@ -69,8 +69,25 @@ public class XMLMng implements DataMng {
 	}
 
 	public LinkedList<Book> getBooksAvailable() {
-		// TODO Auto-generated method stub
-		return null;
+
+		LinkedList<Book> books_available = new LinkedList<Book>();
+		Document doc;
+		
+		try {
+			doc = readFile (xml_file);
+			NodeList books = searchElementGroup( doc, "Book");
+			for ( int i = 0; i< books.getLength(); i++) {
+				Book temp_book = createBookFromData( (Element) books.item(i) );
+				LinkedList<Reservation> book_reserv = getActiveReservation( temp_book, null);
+				if ( temp_book.getQuantity() > book_reserv.size() ) {
+					books_available.add( temp_book );
+				}
+			}
+		} catch (ParserConfigurationException | TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return books_available;
 	}
 
 	public LinkedList<Book> searchBook(String[] param, String[] value) {
@@ -207,7 +224,7 @@ public class XMLMng implements DataMng {
 	public IValidationResult deleteBook(Book b, User u) {
 		/**
 		 * Delete a Book, if is not reserved
-		 * @return boolean 
+		 * @return IValidationResult -> ComplexBooleanValue true / false + message 
 		 */		
 		if ( ! u.getRole().equals("Admin")) {
 			return new ComplexBooleanValue( "Permission denided. You're not Admin!" );
@@ -239,7 +256,36 @@ public class XMLMng implements DataMng {
 		return new ComplexBooleanValue( "TODO" );
 	}
 	
-	public Document readFile( String pathFile ) throws ParserConfigurationException, TransformerException {
+	private LinkedList<Reservation> getActiveReservation( Book b, User u ) {
+		
+		LinkedList<Reservation> result = new LinkedList<Reservation>();
+		Document doc = null;
+		try {
+			doc = readFile( xml_file );
+			NodeList res = searchElementGroup( doc, "Reservation");
+			for ( int i = 0; i< res.getLength(); i++) {
+				Reservation reservation = createReservationFromData( (Element) res.item(i) );
+				DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+				Date today = formatter.parse(formatter.format( new Date() ));
+
+				if ( reservation.getBookId() == b.getBookId() && reservation.getEndDate().before( today ) ) {
+					result.add( reservation );
+				}
+			}
+		} catch (ParserConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (TransformerException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
+	private Document readFile( String pathFile ) throws ParserConfigurationException, TransformerException {
 		/**
 		 * Loads xml file with Library's data
 		 * If xml do not exist it creates it and return
@@ -266,7 +312,7 @@ public class XMLMng implements DataMng {
 		return doc;
 	}
 	
-	public boolean checkFileLibraryExist(String filePath) {
+	private boolean checkFileLibraryExist(String filePath) {
 		/**
 		 * Check if xml file exist
 		 * @return Boolean true / false
@@ -278,7 +324,7 @@ public class XMLMng implements DataMng {
 		return false;
 	}
 	
-	public Document createFile(String PathFile) throws ParserConfigurationException, TransformerException {
+	private Document createFile(String PathFile) throws ParserConfigurationException, TransformerException {
 		/**
 		 * Create file xml and return
 		 * @return Document xml read
@@ -303,7 +349,7 @@ public class XMLMng implements DataMng {
 		return doc;
 	}
 	
-	public void writeFile( Document doc, String pathFile ) throws TransformerException {
+	private void writeFile( Document doc, String pathFile ) throws TransformerException {
 		/**
 		 * Save document to xml file
 		 * @return 
@@ -329,7 +375,7 @@ public class XMLMng implements DataMng {
 		//System.out.println("File saved!");
 	}
 	
-	public NodeList searchElementGroup(Document d, String type) {
+	private NodeList searchElementGroup(Document d, String type) {
 		/**
 		 * Search element by tag (type = Users/Books/Reservations) xml
 		 * @return NodeList with that tag 
@@ -341,7 +387,7 @@ public class XMLMng implements DataMng {
 		return list;
 	}
 	
-	public Element createElement(Document d, String type, String[] param, String[] value ) {
+	private Element createElement(Document d, String type, String[] param, String[] value ) {
 		/**
 		 * Create a new element with attributes
 		 * @return Element to be insert in the document
@@ -356,7 +402,7 @@ public class XMLMng implements DataMng {
 		return e;
 	}
 	
-	public Document insertElement(Document d, String type, String[] param, String[] value) {
+	private Document insertElement(Document d, String type, String[] param, String[] value) {
 		/**
 		 * Insert new Element inside right group
 		 * @return Document to be saved
@@ -551,7 +597,7 @@ public class XMLMng implements DataMng {
 		
 	}
 	
-	public int getNewIdBook() {
+	private int getNewIdBook() {
 		int id_max = 0;
 		try {
 			Document doc = readFile( xml_file );
@@ -575,13 +621,12 @@ public class XMLMng implements DataMng {
 		User u = null;
 		NodeList users = searchElementGroup ( doc, "User" ); 
 		for (int i = 0; i < users.getLength(); i++ ) {
-			User user_temp = createUserFromData ( (Element) users.item( i ) );
-			if (user_temp.getUserId() == id) {
-				return user_temp;
+			u = createUserFromData ( (Element) users.item( i ) );
+			if ( u.getUserId() == id ) {
+				return u;
 			}
 		}			
-		
-		return null;		
+		return u;		
 	}
 
 	@Override
