@@ -726,9 +726,33 @@ public class XMLMng implements DataMng {
 	}
 
 	@Override
-	public LinkedList<Reservation> searchReservationOfUser(Book b, User u) {
-		// TODO @Andrea
-		return null;
+	public LinkedList<Reservation> searchReservationOfUser( Book b, User u ) {
+		/**
+		 * Look for a Reservation having as input a Book and user
+		 * @return LinkedList of reservations
+		 */
+		LinkedList<Reservation> reservationsActives = new LinkedList<Reservation>();
+		Document doc;
+		try {
+			doc = readFile(xml_file);
+			doc.getDocumentElement().normalize();
+			NodeList reservation_list = searchElementGroup(doc, "Reservation");
+			
+			DateFormat data_format = new SimpleDateFormat("dd/MM/yyyy");
+			Date today = data_format.parse( data_format.format( new Date() ) );
+			for( int i = 0; i < reservation_list.getLength(); i++) {
+				
+				Element reservation_temp = (Element) reservation_list.item( i );
+				Reservation reservation = createReservationFromData( reservation_temp );
+				if ( reservation.getUserId() == u.getUserId() && today.before( reservation.getEndDate()) ){		
+					reservationsActives.add( reservation );	
+				}
+			}				
+		} catch (ParserConfigurationException | TransformerException | ParseException e) {
+			// Auto-generated catch block
+			e.printStackTrace();
+		}
+		return reservationsActives;
 	}
 
 	private LinkedList<User> searchUser(String[] param, String[] value) {
