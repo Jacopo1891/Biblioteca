@@ -21,6 +21,11 @@ public class ServerLibraryImpl implements ServerLibrary {
 		my_libr.connectToData( path_xml );
 	}
 	
+	public ServerLibraryImpl( String user, String pass, String host, int port ) {
+		my_libr = new Library();
+		my_libr.connectToData(user, pass, host, port);
+	}
+	
 	@Override
 	public User login(String username, String password) {
 		return my_libr.login( username, password );
